@@ -17,8 +17,9 @@ export function create(onNext) {
                 };
             }
             else {
+                const value = value_1(_arg);
                 return {
-                    value: value_1(_arg),
+                    value: value,
                     done: false,
                 };
             }
@@ -48,8 +49,9 @@ export function createCancellable(onCancel, onNext) {
                 };
             }
             else {
+                const value = value_1(_arg);
                 return {
-                    value: value_1(_arg),
+                    value: value,
                     done: false,
                 };
             }

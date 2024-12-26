@@ -1,6 +1,6 @@
 import { initWith, enabled, error, log as log_1, isEnabled } from "./Logging.fs.js";
 import { class_type } from "../fable-library-js.4.21.0/Reflection.js";
-import { empty, iterate } from "../fable-library-js.4.21.0/List.js";
+import { cons as cons_1, empty, iterate } from "../fable-library-js.4.21.0/List.js";
 import { defaultOf, int32ToString, structuralHash, equals, createAtom } from "../fable-library-js.4.21.0/Util.js";
 import { Dictionary } from "../fable-library-js.4.21.0/MutableMap.js";
 import { Event_notifyUpdated, rafu, findNodeWithSvId, Event_NewStore, CustomDispatch$1_dispatch_4FBB8B24, Event_UpdateStore, CustomDispatch$1_dispatch_472E5A31 } from "./DomHelpers.fs.js";
@@ -49,7 +49,8 @@ export function Helpers_CmdHandler$1__Dispose(_) {
     if (matchValue == null) {
     }
     else {
-        matchValue();
+        const d = matchValue;
+        d();
     }
 }
 
@@ -169,6 +170,7 @@ export class Store$1 {
         this.name = ("store-" + int32ToString(this.storeId));
         this._modelInitialized = false;
         this._model = defaultOf();
+        this.disposeListeners = empty();
         this.subscribers = (new Map([]));
     }
     toString() {
@@ -186,6 +188,10 @@ export class Store$1 {
     get Value() {
         const this$ = this;
         return Store$1__get_Value(this$);
+    }
+    OnDispose(f) {
+        const this$ = this;
+        Store$1__OnDispose_3A5B6456(this$, f);
     }
     get Name() {
         const this$ = this;
@@ -261,6 +267,10 @@ export function Store$1__set_Name_Z721C83C5(this$, v) {
     this$.name = v;
 }
 
+export function Store$1__OnDispose_3A5B6456(this$, f) {
+    Store$1__onDispose_3A5B6456(this$, f);
+}
+
 export function Store$1__Dispose(this$) {
     iterate_1((x) => {
         x.OnCompleted();
@@ -269,6 +279,18 @@ export function Store$1__Dispose(this$) {
     this$.dispose(Store$1__model(this$));
     this$._model = defaultOf();
     Registry_notifyDisposeStore(this$);
+    Store$1__notifyDispose(this$);
+}
+
+export function Store$1__onDispose_3A5B6456(this$, f) {
+    this$.disposeListeners = cons_1(f, this$.disposeListeners);
+}
+
+export function Store$1__notifyDispose(this$) {
+    iterate((f) => {
+        f();
+    }, this$.disposeListeners);
+    this$.disposeListeners = empty();
 }
 
 export function Store$1__model(this$) {
@@ -286,19 +308,24 @@ export function makeElmishWithCons(init, update, dispose, cons) {
         if (_storeDispatch == null) {
             const patternInput_1 = cons(() => {
                 const patternInput = init(props);
-                Helpers_CmdHandler$1__Handle_30F117B7(_cmdHandler, patternInput[1]);
-                return patternInput[0];
+                const m = patternInput[0];
+                const cmd = patternInput[1];
+                Helpers_CmdHandler$1__Handle_30F117B7(_cmdHandler, cmd);
+                return m;
             }, (m_1) => {
                 Helpers_CmdHandler$1__Dispose(_cmdHandler);
                 dispose(m_1);
             });
+            const storeUpdate = patternInput_1[1];
             const store = patternInput_1[0];
             const dispatch = (msg) => {
                 let _cmds = empty();
-                patternInput_1[1]((model) => {
+                storeUpdate((model) => {
                     const patternInput_2 = update(msg, model);
-                    _cmds = patternInput_2[1];
-                    return patternInput_2[0];
+                    const model_1 = patternInput_2[0];
+                    const cmds = patternInput_2[1];
+                    _cmds = cmds;
+                    return model_1;
                 });
                 Helpers_CmdHandler$1__Handle_30F117B7(_cmdHandler, _cmds);
             };
@@ -307,7 +334,8 @@ export function makeElmishWithCons(init, update, dispose, cons) {
             return [store, dispatch];
         }
         else {
-            return _storeDispatch;
+            const storeDispatch = _storeDispatch;
+            return storeDispatch;
         }
     };
 }
@@ -326,20 +354,24 @@ export function makeStore(init, dispose) {
 export function makeElmishWithDocument(doc, init, update, dispose) {
     return makeElmishWithCons(init, update, dispose, (i, d) => {
         const s = makeStore(i, d);
-        return [s, (f) => {
+        const u = (f) => {
             Store$1__Update_Z1FC644CA(s, f);
             Event_notifyUpdated(doc);
-        }];
+        };
+        return [s, u];
     });
 }
 
 export function makeElmishSimpleWithDocument(doc, init, update, dispose) {
-    return makeElmishWithCons((p) => [init(p), empty()], (msg, model) => [update(msg, model), empty()], dispose, (i, d) => {
+    const init_1 = (p) => [init(p), empty()];
+    const update_1 = (msg, model) => [update(msg, model), empty()];
+    return makeElmishWithCons(init_1, update_1, dispose, (i, d) => {
         const s = makeStore(i, d);
-        return [s, (f) => {
+        const u = (f) => {
             Store$1__Update_Z1FC644CA(s, f);
             Event_notifyUpdated(doc);
-        }];
+        };
+        return [s, u];
     });
 }
 

@@ -1,7 +1,7 @@
 import { class_type } from "../fable-library-js.4.21.0/Reflection.js";
 import { transition } from "./Transition.fs.js";
 import { exactlyOne, singleton, empty } from "../fable-library-js.4.21.0/List.js";
-import { arrayWrapO, eachio, eachi, eachiko, eachk, listWrapO, each, bindElement2, bindElementKO, bindElementK, bindElement, bindClassNames, bindClassName, bindClassToggle, bindWidthHeight, bindLeftTop, bindStyle, cssAttrsToString, bindAttrOut, bindAttrIn, bindAttrStoreBoth, bindAttrBoth, attrNotify, bindSelected, bindSelectSingle, bindSelectOptional, bindSelectMultiple, bindGroup, bindRadioGroup } from "./Bindings.fs.js";
+import { arrayWrapO, eachio, eachi, EachItemRenderer$1, eachiko, eachk, listWrapO, each, bindElement2, bindElementKO, bindElementK, bindElement, bindClassNames, bindClassName, bindClassToggle, bindWidthHeight, bindLeftTop, bindElementEffect, bindStyle, bindBoolAttr, cssAttrsToString, bindAttrOut, bindAttrIn, bindAttrStoreBoth, bindAttrBoth, attrNotify, bindSelected, bindSelectSingle, bindSelectOptional, bindSelectMultiple, bindGroup, bindRadioGroup } from "./Bindings.fs.js";
 import { Store_map, StoreOperators_op_DotGreater } from "./Store.fs.js";
 import { Fable_Core_JS_Promise$1__Promise$1_ToObservable } from "./Promise.fs.js";
 import { text, class$0027, el } from "./CoreElements.fs.js";
@@ -110,11 +110,19 @@ export function Bind_style_14B41C44(attrs) {
     return Bind_attr_3F2394B8("style", Store_map(cssAttrsToString, attrs));
 }
 
+export function Bind_booleanAttr_AEE46D1(name, isTrue) {
+    return bindBoolAttr(isTrue, name);
+}
+
 /**
  * One way binding from custom values to style updater function. This allows updating of the element's <c>style</c> property rather than the style attribute string.
  */
 export function Bind_style_2C84B00C(values, updater) {
     return bindStyle(values, updater);
+}
+
+export function Bind_effect_Z2CA06641(values, updater) {
+    return bindElementEffect(values, updater);
 }
 
 export function Bind_leftTop_44BD5D2F(xy) {
@@ -212,7 +220,7 @@ export function Bind_each_Z2E167B6C(items, view) {
  * Bind keyed lists to a simple template, with transitions
  * Deprecated: Use a view template that takes IObservable<'T>
  */
-export function Bind_each_Z738C7BF2(items, view, key, trans) {
+export function Bind_each_3424FD46(items, view, key, trans) {
     return eachk(listWrapO(items), view, key, trans);
 }
 
@@ -220,7 +228,7 @@ export function Bind_each_Z738C7BF2(items, view, key, trans) {
  * Bind keyed lists to a simple template
  * Deprecated: Use a view template that takes IObservable<'T>
  */
-export function Bind_each_Z48AD73E(items, view, key) {
+export function Bind_each_Z6DFDA8F6(items, view, key) {
     return eachk(listWrapO(items), view, key, empty());
 }
 
@@ -228,21 +236,25 @@ export function Bind_each_Z48AD73E(items, view, key) {
  * Bind keyed lists to a simple template, with transitions
  */
 export function Bind_each_Z2C15E560(items, view, key, trans) {
-    return eachiko()(listWrapO(items))((arg) => view(arg[1]))((arg_1) => key(arg_1[1]))(trans);
+    return eachiko()(listWrapO(items))(new EachItemRenderer$1(2, [view]))((arg) => key(arg[1]))(trans);
 }
 
 /**
  * Bind keyed lists to a simple template, with transitions
  */
 export function Bind_each_47709A2C(items, view, key) {
-    return eachiko()(listWrapO(items))((arg) => view(arg[1]))((arg_1) => key(arg_1[1]))(empty());
+    return eachiko()(listWrapO(items))(new EachItemRenderer$1(2, [view]))((arg) => key(arg[1]))(empty());
 }
 
-export function Bind_eachi_Z1450DAD5(items, view, trans) {
+export function Bind_each_5A8EFD32(items, view, key) {
+    return eachiko()(listWrapO(items))(new EachItemRenderer$1(1, [view]))((arg) => key(arg[1]))(empty());
+}
+
+export function Bind_eachi_3D64A0AB(items, view, trans) {
     return eachi(listWrapO(items), view, trans);
 }
 
-export function Bind_eachi_74C7F747(items, view) {
+export function Bind_eachi_Z376C3339(items, view) {
     return eachi(listWrapO(items), view, empty());
 }
 
@@ -255,11 +267,11 @@ export function Bind_eachi_AD1DDC1(items, view) {
 }
 
 export function Bind_eachi_72C00F40(items, view, key, trans) {
-    return eachiko()(listWrapO(items))(view)(key)(trans);
+    return eachiko()(listWrapO(items))(new EachItemRenderer$1(4, [view]))(key)(trans);
 }
 
 export function Bind_eachi_Z31CC4F34(items, view, key) {
-    return eachiko()(listWrapO(items))(view)(key)(empty());
+    return eachiko()(listWrapO(items))(new EachItemRenderer$1(4, [view]))(key)(empty());
 }
 
 export function Bind_promises_B7F7BB7(items, view, waiting, error) {
@@ -267,11 +279,26 @@ export function Bind_promises_B7F7BB7(items, view, waiting, error) {
 }
 
 export function Bind_promise_ZD6A6129(p, view, waiting, error) {
-    return Bind_el_ZF0512D0(Fable_Core_JS_Promise$1__Promise$1_ToObservable(p), (state) => ((state.tag === 2) ? error(state.fields[0]) : ((state.tag === 1) ? view(state.fields[0]) : waiting)));
+    return Bind_el_ZF0512D0(Fable_Core_JS_Promise$1__Promise$1_ToObservable(p), (state) => {
+        switch (state.tag) {
+            case 2: {
+                const x = state.fields[0];
+                return error(x);
+            }
+            case 1: {
+                const r = state.fields[0];
+                return view(r);
+            }
+            default:
+                return waiting;
+        }
+    });
 }
 
 export function Bind_promise_Z6B94AFE8(p, view) {
-    return Bind_promise_ZD6A6129(p, view, el("div", [class$0027("promise-waiting"), text("waiting...")]), (x) => el("div", [class$0027("promise-error"), text(x.message)]));
+    const w = el("div", [class$0027("promise-waiting"), text("waiting...")]);
+    const e = (x) => el("div", [class$0027("promise-error"), text(x.message)]);
+    return Bind_promise_ZD6A6129(p, view, w, e);
 }
 
 export class BindArray {
@@ -301,7 +328,7 @@ export function BindArray_each_Z7C0E6263(items, view) {
  * Bind keyed arrays to a simple template, with transitions
  * Deprecated: Use a view template that takes IObservable<'T>
  */
-export function BindArray_each_59F18947(items, view, key, trans) {
+export function BindArray_each_94AD30F(items, view, key, trans) {
     return eachk(arrayWrapO(items), view, key, trans);
 }
 
@@ -309,7 +336,7 @@ export function BindArray_each_59F18947(items, view, key, trans) {
  * Bind keyed arrays to a simple template
  * Deprecated: Use a view template that takes IObservable<'T>
  */
-export function BindArray_each_Z9B59115(items, view, key) {
+export function BindArray_each_2646E1A3(items, view, key) {
     return eachk(arrayWrapO(items), view, key, empty());
 }
 
@@ -317,21 +344,28 @@ export function BindArray_each_Z9B59115(items, view, key) {
  * Bind keyed arrays to a simple template, with transitions
  */
 export function BindArray_each_Z4B560797(items, view, key, trans) {
-    return eachiko()(arrayWrapO(items))((arg) => view(arg[1]))((arg_1) => key(arg_1[1]))(trans);
+    return eachiko()(arrayWrapO(items))(new EachItemRenderer$1(2, [view]))((arg) => key(arg[1]))(trans);
 }
 
 /**
  * Bind keyed arrays to a simple template, with transitions
  */
 export function BindArray_each_294BA4C5(items, view, key) {
-    return eachiko()(arrayWrapO(items))((arg) => view(arg[1]))((arg_1) => key(arg_1[1]))(empty());
+    return eachiko()(arrayWrapO(items))(new EachItemRenderer$1(2, [view]))((arg) => key(arg[1]))(empty());
 }
 
-export function BindArray_eachi_Z1B4B82FE(items, view, trans) {
+/**
+ * Bind keyed arrays to a simple template, with transitions
+ */
+export function BindArray_eachs_223BB5DB(items, view, key) {
+    return eachiko()(arrayWrapO(items))(new EachItemRenderer$1(1, [view]))((arg) => key(arg[1]))(empty());
+}
+
+export function BindArray_eachi_61B9CB02(items, view, trans) {
     return eachi(arrayWrapO(items), view, trans);
 }
 
-export function BindArray_eachi_26DFEE4E(items, view) {
+export function BindArray_eachi_BDF844E(items, view) {
     return eachi(arrayWrapO(items), view, empty());
 }
 

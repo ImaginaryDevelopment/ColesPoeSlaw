@@ -2,8 +2,8 @@ import { log as log_2, isEnabled } from "./Logging.fs.js";
 import { Union, Record } from "../fable-library-js.4.21.0/Types.js";
 import { option_type, union_type, list_type, string_type, class_type, record_type, unit_type, lambda_type, bool_type, float64_type } from "../fable-library-js.4.21.0/Reflection.js";
 import { HashSet } from "../fable-library-js.4.21.0/MutableSet.js";
-import { curry2, disposeSafe, getEnumerator, comparePrimitives, curry3, defaultOf, safeHash, equals } from "../fable-library-js.4.21.0/Util.js";
-import { wait, NodeKey_clear, NodeKey_TickTask, NodeKey_get, CustomDispatch$1_dispatch_4FBB8B24, nodeStr, documentOf, raf } from "./DomHelpers.fs.js";
+import { curry3, curry2, disposeSafe, getEnumerator, comparePrimitives, defaultOf, safeHash, equals } from "../fable-library-js.4.21.0/Util.js";
+import { wait, CustomDispatch$1_dispatch_4FBB8B24, NodeKey_clear, NodeKey_TickTask, NodeKey_get, nodeStr, documentOf, raf } from "./DomHelpers.fs.js";
 import { addToSet } from "../fable-library-js.4.21.0/MapUtil.js";
 import { quintOut, linear } from "./Easing.fs.js";
 import { iterate, map as map_2, skip, head, singleton, cons, isEmpty, length, empty, fold, append } from "../fable-library-js.4.21.0/List.js";
@@ -147,7 +147,7 @@ export function mergeProps(newerProps, existingProps) {
 }
 
 export function withProps(userProps, f, initProps) {
-    return curry3(f)(mergeProps(userProps, initProps));
+    return f(mergeProps(userProps, initProps));
 }
 
 export class TransitionAttribute extends Union {
@@ -157,12 +157,12 @@ export class TransitionAttribute extends Union {
         this.fields = fields;
     }
     cases() {
-        return ["InOut", "In", "Out"];
+        return ["InOut", "In", "Out", "Animate"];
     }
 }
 
 export function TransitionAttribute_$reflection() {
-    return union_type("Sutil.Transition.TransitionAttribute", [], TransitionAttribute, () => [[["Item", lambda_type(list_type(TransitionProp_$reflection()), lambda_type(class_type("Browser.Types.HTMLElement", undefined), lambda_type(unit_type, Transition_$reflection())))]], [["Item", lambda_type(list_type(TransitionProp_$reflection()), lambda_type(class_type("Browser.Types.HTMLElement", undefined), lambda_type(unit_type, Transition_$reflection())))]], [["Item", lambda_type(list_type(TransitionProp_$reflection()), lambda_type(class_type("Browser.Types.HTMLElement", undefined), lambda_type(unit_type, Transition_$reflection())))]]]);
+    return union_type("Sutil.Transition.TransitionAttribute", [], TransitionAttribute, () => [[["Item", lambda_type(list_type(TransitionProp_$reflection()), lambda_type(class_type("Browser.Types.HTMLElement", undefined), lambda_type(unit_type, Transition_$reflection())))]], [["Item", lambda_type(list_type(TransitionProp_$reflection()), lambda_type(class_type("Browser.Types.HTMLElement", undefined), lambda_type(unit_type, Transition_$reflection())))]], [["Item", lambda_type(list_type(TransitionProp_$reflection()), lambda_type(class_type("Browser.Types.HTMLElement", undefined), lambda_type(unit_type, Transition_$reflection())))]], [["Item", lambda_type(list_type(TransitionProp_$reflection()), lambda_type(class_type("Browser.Types.HTMLElement", undefined), lambda_type(Animation_$reflection(), Transition_$reflection())))]]]);
 }
 
 function overrideDuration(d) {
@@ -185,30 +185,54 @@ function overrideDurationFn(fo) {
 
 function applyProp(r, prop) {
     switch (prop.tag) {
-        case 5:
-            return new Transition(r.Key, r.X, r.Y, r.Opacity, r.Delay, prop.fields[0], undefined, r.Speed, r.Ease, r.CssGen, r.Tick, r.Fallback);
-        case 6:
-            return new Transition(r.Key, r.X, r.Y, r.Opacity, r.Delay, 0, prop.fields[0], r.Speed, r.Ease, r.CssGen, r.Tick, r.Fallback);
-        case 7:
-            return new Transition(r.Key, r.X, r.Y, r.Opacity, r.Delay, r.Duration, r.DurationFn, r.Speed, prop.fields[0], r.CssGen, r.Tick, r.Fallback);
-        case 8:
-            return new Transition(r.Key, r.X, r.Y, r.Opacity, r.Delay, r.Duration, r.DurationFn, r.Speed, r.Ease, prop.fields[0], r.Tick, r.Fallback);
-        case 9:
-            return new Transition(r.Key, r.X, r.Y, r.Opacity, r.Delay, r.Duration, r.DurationFn, r.Speed, r.Ease, r.CssGen, prop.fields[0], r.Fallback);
-        case 10:
-            return new Transition(r.Key, r.X, r.Y, r.Opacity, r.Delay, r.Duration, r.DurationFn, prop.fields[0], r.Ease, r.CssGen, r.Tick, r.Fallback);
-        case 1:
-            return new Transition(r.Key, prop.fields[0], r.Y, r.Opacity, r.Delay, r.Duration, r.DurationFn, r.Speed, r.Ease, r.CssGen, r.Tick, r.Fallback);
-        case 2:
-            return new Transition(r.Key, r.X, prop.fields[0], r.Opacity, r.Delay, r.Duration, r.DurationFn, r.Speed, r.Ease, r.CssGen, r.Tick, r.Fallback);
-        case 3:
-            return new Transition(r.Key, r.X, r.Y, prop.fields[0], r.Delay, r.Duration, r.DurationFn, r.Speed, r.Ease, r.CssGen, r.Tick, r.Fallback);
-        case 0:
-            return new Transition(prop.fields[0], r.X, r.Y, r.Opacity, r.Delay, r.Duration, r.DurationFn, r.Speed, r.Ease, r.CssGen, r.Tick, r.Fallback);
-        case 11:
-            return new Transition(r.Key, r.X, r.Y, r.Opacity, r.Delay, r.Duration, r.DurationFn, r.Speed, r.Ease, r.CssGen, r.Tick, prop.fields[0]);
-        default:
-            return new Transition(r.Key, r.X, r.Y, r.Opacity, prop.fields[0], r.Duration, r.DurationFn, r.Speed, r.Ease, r.CssGen, r.Tick, r.Fallback);
+        case 5: {
+            const d_1 = prop.fields[0];
+            return new Transition(r.Key, r.X, r.Y, r.Opacity, r.Delay, d_1, undefined, r.Speed, r.Ease, r.CssGen, r.Tick, r.Fallback);
+        }
+        case 6: {
+            const fo = prop.fields[0];
+            return new Transition(r.Key, r.X, r.Y, r.Opacity, r.Delay, 0, fo, r.Speed, r.Ease, r.CssGen, r.Tick, r.Fallback);
+        }
+        case 7: {
+            const f = prop.fields[0];
+            return new Transition(r.Key, r.X, r.Y, r.Opacity, r.Delay, r.Duration, r.DurationFn, r.Speed, f, r.CssGen, r.Tick, r.Fallback);
+        }
+        case 8: {
+            const f_1 = prop.fields[0];
+            return new Transition(r.Key, r.X, r.Y, r.Opacity, r.Delay, r.Duration, r.DurationFn, r.Speed, r.Ease, f_1, r.Tick, r.Fallback);
+        }
+        case 9: {
+            const f_2 = prop.fields[0];
+            return new Transition(r.Key, r.X, r.Y, r.Opacity, r.Delay, r.Duration, r.DurationFn, r.Speed, r.Ease, r.CssGen, f_2, r.Fallback);
+        }
+        case 10: {
+            const s = prop.fields[0];
+            return new Transition(r.Key, r.X, r.Y, r.Opacity, r.Delay, r.Duration, r.DurationFn, s, r.Ease, r.CssGen, r.Tick, r.Fallback);
+        }
+        case 1: {
+            const n = prop.fields[0];
+            return new Transition(r.Key, n, r.Y, r.Opacity, r.Delay, r.Duration, r.DurationFn, r.Speed, r.Ease, r.CssGen, r.Tick, r.Fallback);
+        }
+        case 2: {
+            const n_1 = prop.fields[0];
+            return new Transition(r.Key, r.X, n_1, r.Opacity, r.Delay, r.Duration, r.DurationFn, r.Speed, r.Ease, r.CssGen, r.Tick, r.Fallback);
+        }
+        case 3: {
+            const n_2 = prop.fields[0];
+            return new Transition(r.Key, r.X, r.Y, n_2, r.Delay, r.Duration, r.DurationFn, r.Speed, r.Ease, r.CssGen, r.Tick, r.Fallback);
+        }
+        case 0: {
+            const f_3 = prop.fields[0];
+            return new Transition(f_3, r.X, r.Y, r.Opacity, r.Delay, r.Duration, r.DurationFn, r.Speed, r.Ease, r.CssGen, r.Tick, r.Fallback);
+        }
+        case 11: {
+            const f_4 = prop.fields[0];
+            return new Transition(r.Key, r.X, r.Y, r.Opacity, r.Delay, r.Duration, r.DurationFn, r.Speed, r.Ease, r.CssGen, r.Tick, f_4);
+        }
+        default: {
+            const d = prop.fields[0];
+            return new Transition(r.Key, r.X, r.Y, r.Opacity, d, r.Duration, r.DurationFn, r.Speed, r.Ease, r.CssGen, r.Tick, r.Fallback);
+        }
     }
 }
 
@@ -254,7 +278,8 @@ function runTasks() {
     const enumerator = getEnumerator(copy);
     try {
         while (enumerator["System.Collections.IEnumerator.MoveNext"]()) {
-            enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]()();
+            const f = enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]();
+            f();
         }
     }
     finally {
@@ -310,14 +335,16 @@ export function createRule(node, a, b, tr, uid) {
         throw new Error("No CSS function supplied");
     }
     else {
-        css = map(curry2, matchValue);
+        const f = map(curry2, matchValue);
+        css = f;
     }
     if (tr.DurationFn != null) {
         throw new Error("Duration function not permitted in createRule");
     }
     const durn = overrideDuration(tr.Duration);
+    const step = 16.666 / durn;
     let keyframes = singleton("{\n");
-    const enumerator = getEnumerator(toList(rangeDouble(0, 16.666 / durn, 1)));
+    const enumerator = getEnumerator(toList(rangeDouble(0, step, 1)));
     try {
         while (enumerator["System.Collections.IEnumerator.MoveNext"]()) {
             const p = enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]();
@@ -358,7 +385,9 @@ function clearRules() {
             const enumerator = getEnumerator(activeDocs);
             try {
                 while (enumerator["System.Collections.IEnumerator.MoveNext"]()) {
-                    const stylesheet = getSutilStylesheet(enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]()[1]);
+                    const kv = enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]();
+                    const doc = kv[1];
+                    const stylesheet = getSutilStylesheet(doc);
                     if (logEnabled()) {
                         log((arg = (~~stylesheet.cssRules.length | 0), toText(printf("clearing %d rules"))(arg)));
                     }
@@ -407,8 +436,8 @@ function rectToStr(c) {
     return toText(printf("[%f,%f -> %f,%f]"))(arg)(arg_1)(arg_2)(arg_3);
 }
 
-export function flip(node, animation, props) {
-    let bind$0040, arg_3, arg_4, matchValue;
+export function flip(props, node, animation) {
+    let bind$0040, arg_3, arg_4, matchValue, f;
     const tr = applyProps(props, (bind$0040 = Transition_get_Default(), new Transition(bind$0040.Key, bind$0040.X, bind$0040.Y, bind$0040.Opacity, 0, bind$0040.Duration, (d) => (Math.sqrt(d) * 60), bind$0040.Speed, quintOut, bind$0040.CssGen, bind$0040.Tick, bind$0040.Fallback)));
     const style = Window_getComputedStyle_Z5966C024(node);
     const transform = (style.transform === "none") ? "" : style.transform;
@@ -420,7 +449,7 @@ export function flip(node, animation, props) {
     if (logEnabled()) {
         log((arg_3 = rectToStr(animation.From), (arg_4 = rectToStr(animation.To), toText(printf("flip: %A,%A %A %A -> %A"))(dx)(dy)(transform)(arg_3)(arg_4))));
     }
-    return new Transition(tr.Key, tr.X, tr.Y, tr.Opacity, tr.Delay, (matchValue = tr.DurationFn, (matchValue != null) ? matchValue(d_1) : tr.Duration), undefined, tr.Speed, tr.Ease, (t_1, u) => {
+    return new Transition(tr.Key, tr.X, tr.Y, tr.Opacity, tr.Delay, (matchValue = tr.DurationFn, (matchValue != null) ? ((f = matchValue, f(d_1))) : tr.Duration), undefined, tr.Speed, tr.Ease, (t_1, u) => {
         const arg_6 = u * dx;
         const arg_7 = u * dy;
         return toText(printf("transform: %s translate(%fpx, %fpx);`"))(transform)(arg_6)(arg_7);
@@ -429,11 +458,11 @@ export function flip(node, animation, props) {
 
 export function createAnimation(node, from, animateFn, props) {
     const tgt = node.getBoundingClientRect();
-    if (((!(from == null) && !(from.width === 0)) && !(from.height === 0)) && !((((from.left === tgt.left) && (from.right === tgt.right)) && (from.top === tgt.top)) && (from.bottom === tgt.bottom))) {
-        let a;
-        const arg_1 = new Animation(from, tgt);
-        a = animateFn(node, arg_1, props);
-        return createRule(node, 0, 1, new Transition(a.Key, a.X, a.Y, a.Opacity, a.Delay, ((a.Duration === 0) && (a.DurationFn == null)) ? 300 : a.Duration, a.DurationFn, a.Speed, a.Ease, a.CssGen, a.Tick, a.Fallback), 0);
+    const shouldCreate = ((!(from == null) && !(from.width === 0)) && !(from.height === 0)) && !((((from.left === tgt.left) && (from.right === tgt.right)) && (from.top === tgt.top)) && (from.bottom === tgt.bottom));
+    if (shouldCreate) {
+        const a = animateFn(props, node, new Animation(from, tgt));
+        const r = new Transition(a.Key, a.X, a.Y, a.Opacity, a.Delay, ((a.Duration === 0) && (a.DurationFn == null)) ? 300 : a.Duration, a.DurationFn, a.Speed, a.Ease, a.CssGen, a.Tick, a.Fallback);
+        return createRule(node, 0, 1, r, 0);
     }
     else {
         return "";
@@ -448,9 +477,9 @@ function waitAnimationEnd(el, f) {
     el.addEventListener("animationend", cb);
 }
 
-export function animateNode(node, from) {
+export function animateNode(node, from, animator) {
     waitAnimationFrame(() => {
-        const name = createAnimation(node, from, flip, empty());
+        const name = createAnimation(node, from, animator, empty());
         waitAnimationEnd(node, () => {
             deleteRule(node, name);
         });
@@ -460,13 +489,13 @@ export function animateNode(node, from) {
 const tickGen = makeIdGenerator();
 
 function findTransition(intro, trans) {
-    let result_1, x_2, x_3, x_1;
+    let result_1, x_1, x_2, x_3;
     let result = undefined;
     const enumerator = getEnumerator(trans);
     try {
         while (enumerator["System.Collections.IEnumerator.MoveNext"]()) {
             const x = enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]();
-            result = ((result_1 = result, (result_1 == null) ? ((x.tag === 2) ? (intro ? undefined : ((x_2 = curry3(x.fields[0]), x_2))) : ((x.tag === 0) ? ((x_3 = curry3(x.fields[0]), x_3)) : (intro ? ((x_1 = curry3(x.fields[0]), x_1)) : undefined))) : result));
+            result = ((result_1 = result, (result_1 == null) ? ((x.tag === 1) ? (intro ? ((x_1 = curry3(x.fields[0]), x_1)) : undefined) : ((x.tag === 2) ? (intro ? undefined : ((x_2 = curry3(x.fields[0]), x_2))) : ((x.tag === 0) ? ((x_3 = curry3(x.fields[0]), x_3)) : undefined))) : result));
         }
     }
     finally {
@@ -477,39 +506,7 @@ function findTransition(intro, trans) {
 
 export function transitionNode(el, trans, initProps, isVisible, start, complete) {
     let ruleName = "";
-    const tr_1 = findTransition(isVisible, trans);
-    const _display = (el.style).display;
-    if ((!(_display == null) && (_display !== "")) && (_display !== "none")) {
-        el["_display"] = _display;
-    }
-    if (tr_1 != null) {
-        const init = tr_1;
-        deleteRule(el, "");
-        const createTrans = init(initProps)(el);
-        const event = isVisible ? "introstart" : "outrostart";
-        const patternInput = isVisible ? [0, 1] : [1, 0];
-        const b_1 = patternInput[1];
-        const onEnd = isVisible ? (() => {
-            if (logEnabled()) {
-                log(`show ${nodeStr(el)}`);
-            }
-            showEl(el, true);
-            complete(el);
-            if (ruleName !== "") {
-                deleteRule(el, ruleName);
-            }
-            CustomDispatch$1_dispatch_4FBB8B24(el, "introend");
-        }) : (() => {
-            if (logEnabled()) {
-                log(`hide ${nodeStr(el)}`);
-            }
-            showEl(el, false);
-            complete(el);
-            if (ruleName !== "") {
-                deleteRule(el, ruleName);
-            }
-            CustomDispatch$1_dispatch_4FBB8B24(el, "outroend");
-        });
+    const cancelTick = () => {
         const matchValue = NodeKey_get(el, NodeKey_TickTask);
         if (matchValue == null) {
         }
@@ -518,6 +515,102 @@ export function transitionNode(el, trans, initProps, isVisible, start, complete)
             NodeKey_clear(el, NodeKey_TickTask);
             f();
         }
+    };
+    const runTick = (tr, b, durn) => {
+        const logEnabled_1 = isEnabled("tick");
+        const log_1 = (message) => {
+            log_2("tick", message);
+        };
+        const a = (b === 0) ? 1 : 0;
+        const d = b - a;
+        const tickId = tickGen() | 0;
+        let tick;
+        const matchValue_1 = tr.Tick;
+        if (matchValue_1 == null) {
+            throw new Error("No tick function supplied");
+        }
+        else {
+            const f_1 = map(curry2, matchValue_1);
+            tick = f_1;
+        }
+        const ease = tr.Ease;
+        const delay = tr.Delay;
+        let t = a;
+        let start_1 = 0;
+        let finish = 0;
+        let started = false;
+        let finished = false;
+        el[NodeKey_TickTask] = (() => {
+            if (logEnabled_1) {
+                log_1(`#${tickId}: cancel`);
+            }
+            finished = true;
+        });
+        if (logEnabled_1) {
+            log_1(`#${tickId}: run b=${b} durn=${durn}`);
+        }
+        if (b > 0) {
+            tick(0)(1);
+        }
+        return LoopTasks_loop((now) => {
+            if (!started) {
+                start_1 = (now + delay);
+                finish = (start_1 + durn);
+                if (logEnabled_1) {
+                    log_1(`#${tickId}: start: start=${start_1} finish=${finish}`);
+                }
+                started = true;
+            }
+            if (finished ? true : (now >= finish)) {
+                if (logEnabled_1) {
+                    log_1(`#${tickId}: finish: t=${t}`);
+                }
+                t = b;
+                tick(t)(1 - t);
+                finished = true;
+            }
+            else if (now >= start_1) {
+                const e = now - start_1;
+                const t0 = e / durn;
+                t = (a + (d * ease(t0)));
+                if (logEnabled_1) {
+                    log_1(`#${tickId}: tick: t=${t} t0=${t0} e=${e}`);
+                }
+                tick(t)(1 - t);
+            }
+            return !finished;
+        });
+    };
+    const hide = () => {
+        if (logEnabled()) {
+            log(`hide ${nodeStr(el)}`);
+        }
+        showEl(el, false);
+        complete(el);
+        if (ruleName !== "") {
+            deleteRule(el, ruleName);
+        }
+        CustomDispatch$1_dispatch_4FBB8B24(el, "outroend");
+    };
+    const show = () => {
+        if (logEnabled()) {
+            log(`show ${nodeStr(el)}`);
+        }
+        showEl(el, true);
+        complete(el);
+        if (ruleName !== "") {
+            deleteRule(el, ruleName);
+        }
+        CustomDispatch$1_dispatch_4FBB8B24(el, "introend");
+    };
+    const tr_1 = findTransition(isVisible, trans);
+    const startTransition = (createTrans) => {
+        const event = isVisible ? "introstart" : "outrostart";
+        const patternInput = isVisible ? [0, 1] : [1, 0];
+        const b_1 = patternInput[1];
+        const a_1 = patternInput[0];
+        const onEnd = isVisible ? show : hide;
+        cancelTick();
         waitAnimationFrame(() => {
             CustomDispatch$1_dispatch_4FBB8B24(el, event);
             start(el);
@@ -529,52 +622,27 @@ export function transitionNode(el, trans, initProps, isVisible, start, complete)
             if (tr_2.DurationFn != null) {
                 throw new Error("Duration function not permitted");
             }
+            const d_1 = tr_2.Duration;
             if (tr_2.CssGen != null) {
-                ruleName = createRule(el, patternInput[0], b_1, tr_2, 0);
+                ruleName = createRule(el, a_1, b_1, tr_2, 0);
             }
             if (tr_2.Tick != null) {
                 wait(el, () => {
-                    let tr, b, durn, logEnabled_1, log_1, a, d, tickId, tick, matchValue_1, t, start_1, finish, started, finished;
-                    return ((tr = tr_2, (b = b_1, (durn = tr_2.Duration, (logEnabled_1 = isEnabled("tick"), (log_1 = ((message) => {
-                        log_2("tick", message);
-                    }), (a = ((b === 0) ? 1 : 0), (d = (b - a), (tickId = (tickGen() | 0), (tick = ((matchValue_1 = tr.Tick, (matchValue_1 == null) ? (() => {
-                        throw new Error("No tick function supplied");
-                    })() : map(curry2, matchValue_1))), (t = a, (start_1 = 0, (finish = 0, (started = false, (finished = false, (el[NodeKey_TickTask] = (() => {
-                        if (logEnabled_1) {
-                            log_1(`#${tickId}: cancel`);
-                        }
-                        finished = true;
-                    }), (logEnabled_1 ? log_1(`#${tickId}: run b=${b} durn=${durn}`) : undefined, ((b > 0) ? tick(0)(1) : undefined, LoopTasks_loop((now) => {
-                        if (!started) {
-                            start_1 = (now + tr.Delay);
-                            finish = (start_1 + durn);
-                            if (logEnabled_1) {
-                                log_1(`#${tickId}: start: start=${start_1} finish=${finish}`);
-                            }
-                            started = true;
-                        }
-                        if (finished ? true : (now >= finish)) {
-                            if (logEnabled_1) {
-                                log_1(`#${tickId}: finish: t=${t}`);
-                            }
-                            t = b;
-                            tick(t)(1 - t);
-                            finished = true;
-                        }
-                        else if (now >= start_1) {
-                            const e = now - start_1;
-                            const t0 = e / durn;
-                            t = (a + (d * tr.Ease(t0)));
-                            if (logEnabled_1) {
-                                log_1(`#${tickId}: tick: t=${t} t0=${t0} e=${e}`);
-                            }
-                            tick(t)(1 - t);
-                        }
-                        return !finished;
-                    }))))))))))))))))))).Promise;
+                    const t_1 = runTick(tr_2, b_1, d_1);
+                    return t_1.Promise;
                 });
             }
         });
+    };
+    const _display = (el.style).display;
+    if ((!(_display == null) && (_display !== "")) && (_display !== "none")) {
+        el["_display"] = _display;
+    }
+    if (tr_1 != null) {
+        const init = tr_1;
+        deleteRule(el, "");
+        const createTrans_1 = init(initProps)(el);
+        startTransition(createTrans_1);
     }
     else {
         showEl(el, isVisible);
@@ -619,7 +687,8 @@ export function collectNodes(sn) {
 
 export function transitionList(list) {
     return SutilElement_Define_Z60F5000F("transitionList", (ctx) => {
-        const enumerator = getEnumerator(map_2(createHideableRuntime, list));
+        const runtimes = map_2(createHideableRuntime, list);
+        const enumerator = getEnumerator(runtimes);
         try {
             while (enumerator["System.Collections.IEnumerator.MoveNext"]()) {
                 const rt = enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]();
@@ -650,7 +719,12 @@ export function makeHideable(guard, element_1, transOpt) {
 }
 
 export function transitionMatch(store, options) {
-    return transitionList(map_2((tupledArg) => makeHideable(Store_map(tupledArg[0], store), tupledArg[1], tupledArg[2]), options));
+    return transitionList(map_2((tupledArg) => {
+        const p = tupledArg[0];
+        const e = tupledArg[1];
+        const t = tupledArg[2];
+        return makeHideable(Store_map(p, store), e, t);
+    }, options));
 }
 
 export function transitionOpt(trans, store, element_1, elseElement) {

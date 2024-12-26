@@ -6,7 +6,7 @@ import { printf, toText, join } from "../fable-library-js.4.21.0/String.js";
 import { tryHead, exists, filter, fold, collect, last as last_1, head, tail, cons, iterateIndexed, length, singleton, append, isEmpty, iterate as iterate_1, empty, map } from "../fable-library-js.4.21.0/List.js";
 import { disposeSafe, getEnumerator, equals, int32ToString, defaultOf } from "../fable-library-js.4.21.0/Util.js";
 import { toList, filter as filter_1, iterate } from "../fable-library-js.4.21.0/Seq.js";
-import { ofNullable, bind, some, toArray } from "../fable-library-js.4.21.0/Option.js";
+import { ofNullable, bind, value as value_1, some, toArray } from "../fable-library-js.4.21.0/Option.js";
 import { makeIdGenerator, disposable } from "./Helpers.fs.js";
 import { getOption } from "./Interop.fs.js";
 import { rangeDouble } from "../fable-library-js.4.21.0/Range.js";
@@ -31,7 +31,18 @@ export class SutilEffect extends Union {
     }
     toString() {
         const this$ = this;
-        return (this$.tag === 1) ? nodeStrShort(this$.fields[0]) : ((this$.tag === 2) ? toString(this$.fields[0]) : "SideEffect");
+        switch (this$.tag) {
+            case 1: {
+                const n = this$.fields[0];
+                return nodeStrShort(n);
+            }
+            case 2: {
+                const v = this$.fields[0];
+                return toString(v);
+            }
+            default:
+                return "SideEffect";
+        }
     }
     Dispose() {
         const __ = this;
@@ -74,10 +85,14 @@ function SutilGroup_$ctor_5BDBED5B(_name, _parent, _prevInit) {
 
 function SutilEffect__mapDefault(this$, f, defaultValue) {
     switch (this$.tag) {
-        case 1:
-            return f(this$.fields[0]);
-        case 2:
-            return SutilGroup__MapParent_Z6EDD0E6F(this$.fields[0], f);
+        case 1: {
+            const n = this$.fields[0];
+            return f(n);
+        }
+        case 2: {
+            const n_1 = this$.fields[0];
+            return SutilGroup__MapParent_Z6EDD0E6F(n_1, f);
+        }
         default:
             return defaultValue;
     }
@@ -89,29 +104,36 @@ function SutilEffect__iter_42C48B28(this$, f) {
 
 export function SutilEffect__IsConnected(this$) {
     switch (this$.tag) {
-        case 1:
-            return nodeIsConnected(this$.fields[0]);
-        case 2:
-            return SutilGroup__IsConnected(this$.fields[0]);
+        case 1: {
+            const n = this$.fields[0];
+            return nodeIsConnected(n);
+        }
+        case 2: {
+            const g = this$.fields[0];
+            return SutilGroup__IsConnected(g);
+        }
         default:
             return false;
     }
 }
 
 function SutilEffect_GetGroups_171AE942(node) {
-    return NodeKey_get(node, NodeKey_Groups);
+    const groups = NodeKey_get(node, NodeKey_Groups);
+    return groups;
 }
 
 function SutilEffect_GetCreateGroups_171AE942(node) {
-    return NodeKey_getCreate(node, NodeKey_Groups, empty);
+    const groups = NodeKey_getCreate(node, NodeKey_Groups, empty);
+    return groups;
 }
 
 function SutilEffect_CleanupGroups_171AE942(n) {
+    const groups = SutilEffect_GetGroups_171AE942(n);
     iterate((list) => {
         iterate_1((g) => {
             SutilGroup__Dispose(g);
         }, list);
-    }, toArray(SutilEffect_GetGroups_171AE942(n)));
+    }, toArray(groups));
     NodeKey_clear(n, NodeKey_Groups);
 }
 
@@ -129,7 +151,8 @@ export function SutilEffect__Register_5DF059C1(this$, childGroup) {
             break;
         }
         case 2: {
-            SutilGroup__Register_5DF059C1(this$.fields[0], childGroup);
+            const g = this$.fields[0];
+            SutilGroup__Register_5DF059C1(g, childGroup);
             break;
         }
         default:
@@ -138,66 +161,81 @@ export function SutilEffect__Register_5DF059C1(this$, childGroup) {
 }
 
 export function SutilEffect__PrettyPrint_Z721C83C5(this$, label) {
-    console.groupCollapsed(label);
-    const node = this$;
-    const log_1 = (l_1, s) => {
-        log((Array((l_1 * 4) + 1).join(" ")) + s);
-    };
-    const prDomNode = (l_2) => ((dn) => {
-        const groups = SutilGroup_GroupsOf_171AE942(dn);
-        const l$0027 = (l_2 + length(groups)) | 0;
-        iterateIndexed((i, g) => {
-            log_1(l_2 + i, `<'${SutilGroup__get_Name(g)}'> #${SutilGroup__get_Id(g)}`);
-        }, groups);
-        if (equals(dn, defaultOf())) {
-            log_1(l_2, "(null)");
-        }
-        else if (isTextNode(dn)) {
-            log_1(l_2, `'${dn.textContent}'`);
-        }
-        else {
-            const e = dn;
-            log_1(l$0027, (("<" + e.tagName) + "> #") + toString(svId(e)));
-            const source = children_1(e);
-            iterate(prDomNode(l$0027 + 1), source);
-            if (e.hasOwnProperty(NodeKey_Groups)) {
-                const enumerator = getEnumerator(e[NodeKey_Groups]);
-                try {
-                    while (enumerator["System.Collections.IEnumerator.MoveNext"]()) {
-                        prVNode(l$0027 + 1)(enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]());
+    const pr = (level, deep, node) => {
+        const indent = (l) => (Array((l * 4) + 1).join(" "));
+        const log_1 = (l_1, s) => {
+            log(indent(l_1) + s);
+        };
+        const prDomNode = (l_2) => ((dn) => {
+            let t;
+            const groups = SutilGroup_GroupsOf_171AE942(dn);
+            const l$0027 = (l_2 + length(groups)) | 0;
+            iterateIndexed((i, g) => {
+                log_1(l_2 + i, `<'${SutilGroup__get_Name(g)}'> #${SutilGroup__get_Id(g)}`);
+            }, groups);
+            if (equals(dn, defaultOf())) {
+                log_1(l_2, "(null)");
+            }
+            else if ((t = dn, isTextNode(t))) {
+                const t_1 = dn;
+                log_1(l_2, `'${t_1.textContent}'`);
+            }
+            else {
+                const e = dn;
+                log_1(l$0027, (("<" + e.tagName) + "> #") + toString(svId(e)));
+                if (deep) {
+                    const source = children_1(e);
+                    iterate(prDomNode(l$0027 + 1), source);
+                    if (e.hasOwnProperty(NodeKey_Groups)) {
+                        const groups_1 = e[NodeKey_Groups];
+                        const enumerator = getEnumerator(groups_1);
+                        try {
+                            while (enumerator["System.Collections.IEnumerator.MoveNext"]()) {
+                                const g_1 = enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]();
+                                prVNode(l$0027 + 1)(g_1);
+                            }
+                        }
+                        finally {
+                            disposeSafe(enumerator);
+                        }
                     }
                 }
-                finally {
-                    disposeSafe(enumerator);
-                }
             }
+        });
+        const prVNode = (level_1) => ((v) => {
+            const ch = join(",", map((c) => ("#" + SutilEffect__get_Id(c)), SutilGroup__get_Children(v)));
+            log_1(level_1, ((((("group \'" + SutilGroup__get_Name(v)) + "\' #") + SutilGroup__get_Id(v)) + " children=[") + ch) + "]");
+        });
+        switch (node.tag) {
+            case 1: {
+                const n = node.fields[0];
+                prDomNode(level)(n);
+                break;
+            }
+            case 2: {
+                const v_1 = node.fields[0];
+                prVNode(level)(v_1);
+                break;
+            }
+            default:
+                log_1(level, "-");
         }
-    });
-    const prVNode = (level_1) => ((v) => {
-        const ch = join(",", map((c) => ("#" + SutilEffect__get_Id(c)), SutilGroup__get_Children(v)));
-        log_1(level_1, ((((("group \'" + SutilGroup__get_Name(v)) + "\' #") + SutilGroup__get_Id(v)) + " children=[") + ch) + "]");
-    });
-    switch (node.tag) {
-        case 1: {
-            prDomNode(0)(node.fields[0]);
-            break;
-        }
-        case 2: {
-            prVNode(0)(node.fields[0]);
-            break;
-        }
-        default:
-            log_1(0, "-");
-    }
+    };
+    console.groupCollapsed(label);
+    pr(0, true, this$);
     console.groupEnd();
 }
 
 export function SutilEffect__get_Id(this$) {
     switch (this$.tag) {
-        case 1:
-            return svId(this$.fields[0]);
-        case 2:
-            return SutilGroup__get_Id(this$.fields[0]);
+        case 1: {
+            const n = this$.fields[0];
+            return svId(n);
+        }
+        case 2: {
+            const v = this$.fields[0];
+            return SutilGroup__get_Id(v);
+        }
         default:
             return "-";
     }
@@ -206,11 +244,13 @@ export function SutilEffect__get_Id(this$) {
 export function SutilEffect__set_Id_Z721C83C5(this$, id) {
     switch (this$.tag) {
         case 1: {
-            setSvId(this$.fields[0], id);
+            const n = this$.fields[0];
+            setSvId(n, id);
             break;
         }
         case 2: {
-            SutilGroup__set_Id_Z721C83C5(this$.fields[0], id);
+            const v = this$.fields[0];
+            SutilGroup__set_Id_Z721C83C5(v, id);
             break;
         }
         default:
@@ -265,10 +305,14 @@ export function SutilEffect__IsSameNode_2AD740C9(this$, node) {
 
 export function SutilEffect__get_Document(this$) {
     switch (this$.tag) {
-        case 1:
-            return this$.fields[0].ownerDocument;
-        case 2:
-            return SutilGroup__get_Document(this$.fields[0]);
+        case 1: {
+            const n = this$.fields[0];
+            return n.ownerDocument;
+        }
+        case 2: {
+            const v = this$.fields[0];
+            return SutilGroup__get_Document(v);
+        }
         default:
             return window.document;
     }
@@ -280,10 +324,14 @@ export function SutilEffect__get_IsEmpty(this$) {
 
 export function SutilEffect__get_PrevNode(this$) {
     switch (this$.tag) {
-        case 1:
-            return new SutilEffect(1, [this$.fields[0].previousSibling]);
-        case 2:
-            return SutilGroup__get_PrevNode(this$.fields[0]);
+        case 1: {
+            const n = this$.fields[0];
+            return new SutilEffect(1, [n.previousSibling]);
+        }
+        case 2: {
+            const v = this$.fields[0];
+            return SutilGroup__get_PrevNode(v);
+        }
         default:
             return new SutilEffect(0, []);
     }
@@ -300,8 +348,10 @@ function SutilEffect__get_NextDomNode(this$) {
                 return node.nextSibling;
             }
         }
-        case 2:
-            return SutilGroup__get_NextDomNode(this$.fields[0]);
+        case 2: {
+            const g = this$.fields[0];
+            return SutilGroup__get_NextDomNode(g);
+        }
         default:
             return defaultOf();
     }
@@ -313,10 +363,14 @@ export function SutilEffect__collectDomNodes(this$) {
 
 export function SutilEffect__DomNodes(this$) {
     switch (this$.tag) {
-        case 1:
-            return singleton(this$.fields[0]);
-        case 2:
-            return SutilGroup__DomNodes(this$.fields[0]);
+        case 1: {
+            const n = this$.fields[0];
+            return singleton(n);
+        }
+        case 2: {
+            const v = this$.fields[0];
+            return SutilGroup__DomNodes(v);
+        }
         default:
             return empty();
     }
@@ -329,11 +383,13 @@ export function SutilEffect__get_AsDomNode(this$) {
 export function SutilEffect__Dispose(node) {
     switch (node.tag) {
         case 2: {
-            SutilGroup__Dispose(node.fields[0]);
+            const v = node.fields[0];
+            SutilGroup__Dispose(v);
             break;
         }
         case 1: {
-            unmount(node.fields[0]);
+            const n = node.fields[0];
+            unmount(n);
             break;
         }
         default:
@@ -351,11 +407,13 @@ export function SutilEffect_RegisterDisposable_2069CF16(node, d) {
     }
     switch (node.tag) {
         case 1: {
-            SutilEffect_RegisterDisposable_5FAE877D(node.fields[0], d);
+            const n = node.fields[0];
+            SutilEffect_RegisterDisposable_5FAE877D(n, d);
             break;
         }
         case 2: {
-            SutilGroup__RegisterUnsubscribe_3A5B6456(node.fields[0], () => {
+            const v = node.fields[0];
+            SutilGroup__RegisterUnsubscribe_3A5B6456(v, () => {
                 disposeSafe(d);
             });
             break;
@@ -374,11 +432,12 @@ export function SutilEffect_RegisterUnsubscribe_Z401BC241(node, d) {
 }
 
 function SutilEffect_ReplaceGroup_Z79764E3E(parent, nodes, existing) {
+    let x;
     if (logEnabled()) {
         log(`ReplaceGroup: nodes ${length(nodes)} existing ${length(existing)}`);
     }
-    const insertBefore = !isEmpty(existing) ? (isEmpty(tail(existing)) ? head(existing).nextSibling : last_1(existing).nextSibling) : defaultOf();
-    iterate_1((n) => {
+    const insertBefore = !isEmpty(existing) ? (isEmpty(tail(existing)) ? ((x = head(existing), x.nextSibling)) : last_1(existing).nextSibling) : defaultOf();
+    const remove = (n) => {
         let copyOfStruct, copyOfStruct_1, copyOfStruct_2;
         cleanupDeep(n);
         if (((copyOfStruct = n, copyOfStruct.parentNode)) == null) {
@@ -394,10 +453,12 @@ function SutilEffect_ReplaceGroup_Z79764E3E(parent, nodes, existing) {
             }
             DomEdit_removeChild((copyOfStruct_2 = n, copyOfStruct_2.parentNode), n);
         }
-    }, existing);
-    iterate_1((n_1) => {
+    };
+    const insert = (n_1) => {
         DomEdit_insertBefore(parent, n_1, insertBefore);
-    }, nodes);
+    };
+    iterate_1(remove, existing);
+    iterate_1(insert, nodes);
 }
 
 export function SutilEffect__InsertBefore_Z129D0740(this$, node, refNode) {
@@ -409,17 +470,19 @@ export function SutilEffect__InsertBefore_Z129D0740(this$, node, refNode) {
 export function SutilEffect__InsertAfter_Z5097E6E0(this$, node, refNode) {
     switch (this$.tag) {
         case 1: {
+            const parent = this$.fields[0];
             if (logEnabled()) {
                 log(`InsertAfter (parent = ${this$}: refNode=${refNode} refNode.NextDomNode=${nodeStr(SutilEffect__get_NextDomNode(refNode))}`);
             }
             const refDomNode = SutilEffect__get_NextDomNode(refNode);
             iterate_1((child) => {
-                DomEdit_insertBefore(this$.fields[0], child, refDomNode);
+                DomEdit_insertBefore(parent, child, refDomNode);
             }, SutilEffect__collectDomNodes(node));
             break;
         }
         case 2: {
-            SutilGroup__InsertAfter_Z5097E6E0(this$.fields[0], node, refNode);
+            const g = this$.fields[0];
+            SutilGroup__InsertAfter_Z5097E6E0(g, node, refNode);
             break;
         }
         default: {
@@ -441,11 +504,13 @@ export function SutilEffect__ReplaceGroup_Z748E2B9E(this$, node, existing, inser
     }
     switch (this$.tag) {
         case 1: {
-            SutilEffect_ReplaceGroup_Z79764E3E(this$.fields[0], SutilEffect__collectDomNodes(node), SutilEffect__collectDomNodes(existing));
+            const parent = this$.fields[0];
+            SutilEffect_ReplaceGroup_Z79764E3E(parent, SutilEffect__collectDomNodes(node), SutilEffect__collectDomNodes(existing));
             break;
         }
         case 2: {
-            SutilGroup__ReplaceChild_Z748E2B9E(this$.fields[0], node, existing, insertBefore);
+            const parent_1 = this$.fields[0];
+            SutilGroup__ReplaceChild_Z748E2B9E(parent_1, node, existing, insertBefore);
             break;
         }
         default:
@@ -456,11 +521,13 @@ export function SutilEffect__ReplaceGroup_Z748E2B9E(this$, node, existing, inser
 export function SutilEffect__AppendChild_171AE942(this$, child) {
     switch (this$.tag) {
         case 1: {
-            DomEdit_appendChild(this$.fields[0], child);
+            const parent = this$.fields[0];
+            DomEdit_appendChild(parent, child);
             break;
         }
         case 2: {
-            SutilGroup__AppendChild_2AD740C9(this$.fields[0], new SutilEffect(1, [child]));
+            const parent_1 = this$.fields[0];
+            SutilGroup__AppendChild_2AD740C9(parent_1, new SutilEffect(1, [child]));
             break;
         }
         default:
@@ -470,10 +537,14 @@ export function SutilEffect__AppendChild_171AE942(this$, child) {
 
 export function SutilEffect__get_FirstDomNodeInOrAfter(this$) {
     switch (this$.tag) {
-        case 1:
-            return this$.fields[0];
-        case 2:
-            return SutilGroup__get_FirstDomNodeInOrAfter(this$.fields[0]);
+        case 1: {
+            const n = this$.fields[0];
+            return n;
+        }
+        case 2: {
+            const g = this$.fields[0];
+            return SutilGroup__get_FirstDomNodeInOrAfter(g);
+        }
         default:
             return defaultOf();
     }
@@ -534,16 +605,30 @@ export function SutilGroup__get_PrevDomNode(this$) {
         case 2: {
             const v = matchValue.fields[0];
             const matchValue_1 = SutilGroup__get_LastDomNode(v);
-            result = (equals(matchValue_1, defaultOf()) ? SutilGroup__get_PrevDomNode(v) : matchValue_1);
+            if (equals(matchValue_1, defaultOf())) {
+                result = SutilGroup__get_PrevDomNode(v);
+            }
+            else {
+                const n_1 = matchValue_1;
+                result = n_1;
+            }
             break;
         }
         case 0: {
             const matchValue_2 = SutilGroup__get_Parent(this$);
-            result = ((matchValue_2.tag === 2) ? SutilGroup__get_PrevDomNode(matchValue_2.fields[0]) : defaultOf());
+            if (matchValue_2.tag === 2) {
+                const pv = matchValue_2.fields[0];
+                result = SutilGroup__get_PrevDomNode(pv);
+            }
+            else {
+                result = defaultOf();
+            }
             break;
         }
-        default:
-            result = matchValue.fields[0];
+        default: {
+            const n = matchValue.fields[0];
+            result = n;
+        }
     }
     if (logEnabled()) {
         log(`PrevDomNode of ${this$} -> '${nodeStr(result)}' PrevNode=${SutilGroup__get_PrevNode(this$)}`);
@@ -552,37 +637,45 @@ export function SutilGroup__get_PrevDomNode(this$) {
 }
 
 export function SutilGroup__get_NextDomNode(this$) {
+    let result;
     const matchValue = SutilGroup__DomNodes(this$);
     if (isEmpty(matchValue)) {
         const matchValue_1 = SutilGroup__get_PrevDomNode(this$);
         if (equals(matchValue_1, defaultOf())) {
             const matchValue_2 = SutilGroup__parentDomNode(this$);
             if (equals(matchValue_2, defaultOf())) {
-                return defaultOf();
+                result = defaultOf();
             }
             else {
-                return matchValue_2.firstChild;
+                const p = matchValue_2;
+                result = p.firstChild;
             }
         }
         else {
-            return matchValue_1.nextSibling;
+            const prev = matchValue_1;
+            result = prev.nextSibling;
         }
     }
     else {
-        const matchValue_3 = last_1(matchValue);
+        const ns = matchValue;
+        const matchValue_3 = last_1(ns);
         if (equals(matchValue_3, defaultOf())) {
-            return defaultOf();
+            result = defaultOf();
         }
         else {
-            return matchValue_3.nextSibling;
+            const last = matchValue_3;
+            result = last.nextSibling;
         }
     }
+    return result;
 }
 
 export function SutilGroup__get_FirstDomNode(this$) {
     const matchValue = SutilGroup__DomNodes(this$);
     if (!isEmpty(matchValue)) {
-        return head(matchValue);
+        const ns = tail(matchValue);
+        const n = head(matchValue);
+        return n;
     }
     else {
         return defaultOf();
@@ -595,7 +688,8 @@ export function SutilGroup__get_LastDomNode(this$) {
         return defaultOf();
     }
     else {
-        return last_1(matchValue);
+        const ns = matchValue;
+        return last_1(ns);
     }
 }
 
@@ -605,7 +699,8 @@ export function SutilGroup__get_FirstDomNodeInOrAfter(this$) {
         return SutilGroup__get_NextDomNode(this$);
     }
     else {
-        return matchValue;
+        const first = matchValue;
+        return first;
     }
 }
 
@@ -619,7 +714,8 @@ function SutilGroup__OwnX_171AE942(this$, n) {
 
 function SutilGroup__OwnX_2AD740C9(this$, child) {
     if (child.tag === 1) {
-        SutilGroup__OwnX_171AE942(this$, child.fields[0]);
+        const n = child.fields[0];
+        SutilGroup__OwnX_171AE942(this$, n);
     }
 }
 
@@ -628,15 +724,17 @@ export function SutilGroup_GroupOf_171AE942(n) {
 }
 
 export function SutilGroup_GroupsOf_171AE942(n) {
-    let matchValue_1;
     const parentsOf = (r_mut) => {
         parentsOf:
         while (true) {
             const r = r_mut;
             if (!isEmpty(r)) {
-                const matchValue = SutilGroup__get_Parent(head(r));
+                const xs = tail(r);
+                const x = head(r);
+                const matchValue = SutilGroup__get_Parent(x);
                 if (matchValue.tag === 2) {
-                    r_mut = cons(matchValue.fields[0], r);
+                    const g = matchValue.fields[0];
+                    r_mut = cons(g, r);
                     continue parentsOf;
                 }
                 else {
@@ -649,7 +747,17 @@ export function SutilGroup_GroupsOf_171AE942(n) {
             break;
         }
     };
-    return parentsOf((matchValue_1 = getOption(n, "__sutil_snode"), (matchValue_1 != null) ? singleton(matchValue_1) : empty()));
+    const init = (n_1) => {
+        const matchValue_1 = getOption(n_1, "__sutil_snode");
+        if (matchValue_1 != null) {
+            const g_1 = value_1(matchValue_1);
+            return singleton(g_1);
+        }
+        else {
+            return empty();
+        }
+    };
+    return parentsOf(init(n));
 }
 
 export function SutilGroup__Clear(this$) {
@@ -682,7 +790,9 @@ export function SutilGroup__AppendChild_2AD740C9(this$, child) {
 function SutilGroup__get_FirstChild(this$) {
     const matchValue = this$._children;
     if (!isEmpty(matchValue)) {
-        return head(matchValue);
+        const xs = tail(matchValue);
+        const x = head(matchValue);
+        return x;
     }
     else {
         return new SutilEffect(0, []);
@@ -695,13 +805,14 @@ function SutilGroup__ChildAfter_2AD740C9(this$, prev) {
     }
     else {
         const find = (list_mut) => {
+            let y, x, x_1;
             find:
             while (true) {
                 const list = list_mut;
                 let matchResult, x_2, x_3, y_1, x_4, xs;
                 if (!isEmpty(list)) {
                     if (!isEmpty(tail(list))) {
-                        if (SutilEffect__IsSameNode_2AD740C9(head(list), prev)) {
+                        if ((y = head(tail(list)), (x = head(list), SutilEffect__IsSameNode_2AD740C9(x, prev)))) {
                             matchResult = 2;
                             x_3 = head(list);
                             y_1 = head(tail(list));
@@ -712,7 +823,7 @@ function SutilGroup__ChildAfter_2AD740C9(this$, prev) {
                             xs = tail(list);
                         }
                     }
-                    else if (SutilEffect__IsSameNode_2AD740C9(head(list), prev)) {
+                    else if ((x_1 = head(list), SutilEffect__IsSameNode_2AD740C9(x_1, prev))) {
                         matchResult = 1;
                         x_2 = head(list);
                     }
@@ -758,7 +869,8 @@ function SutilGroup__InsertBefore_Z5097E6E0(this$, child, refNode) {
     const enumerator = getEnumerator(SutilEffect__collectDomNodes(child));
     try {
         while (enumerator["System.Collections.IEnumerator.MoveNext"]()) {
-            DomEdit_insertBefore(parent, enumerator["System.Collections.Generic.IEnumerator`1.get_Current"](), refDomNode);
+            const dnode = enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]();
+            DomEdit_insertBefore(parent, dnode, refDomNode);
         }
     }
     finally {
@@ -769,8 +881,10 @@ function SutilGroup__InsertBefore_Z5097E6E0(this$, child, refNode) {
     }
     else {
         this$._children = fold((list, ch) => {
-            if (SutilEffect__IsSameNode_2AD740C9(ch, refNode)) {
-                return append(list, append(singleton(child), singleton(ch)));
+            let n;
+            if ((n = ch, SutilEffect__IsSameNode_2AD740C9(n, refNode))) {
+                const n_1 = ch;
+                return append(list, append(singleton(child), singleton(n_1)));
             }
             else {
                 return append(list, singleton(ch));
@@ -787,30 +901,45 @@ function SutilGroup__InsertBefore_Z5097E6E0(this$, child, refNode) {
 }
 
 export function SutilGroup__RemoveChild_2AD740C9(_, child) {
+    const rc = (p, c) => {
+        switch (c.tag) {
+            case 1: {
+                const n = c.fields[0];
+                unmount(n);
+                break;
+            }
+            case 2: {
+                const g = c.fields[0];
+                iterate_1((gc) => {
+                    SutilGroup__RemoveChild_2AD740C9(g, gc);
+                }, SutilGroup__get_Children(g));
+                SutilGroup__Dispose(g);
+                break;
+            }
+            default:
+                undefined;
+        }
+    };
     const newChildren = filter((n_1) => !equals(n_1, child), _._children);
-    const p = _.this.contents;
-    const c = child;
-    switch (c.tag) {
-        case 1: {
-            unmount(c.fields[0]);
-            break;
-        }
-        case 2: {
-            const g = c.fields[0];
-            iterate_1((gc) => {
-                SutilGroup__RemoveChild_2AD740C9(g, gc);
-            }, SutilGroup__get_Children(g));
-            SutilGroup__Dispose(g);
-            break;
-        }
-        default:
-            undefined;
-    }
+    rc(_.this.contents, child);
     _._children = newChildren;
     SutilGroup__updateChildrenPrev(_);
 }
 
 export function SutilGroup__ReplaceChild_Z748E2B9E(this$, child, oldChild, insertBefore) {
+    const deleteOldNodes = () => {
+        const oldNodes = SutilEffect__collectDomNodes(oldChild);
+        iterate_1((c) => {
+            if (c.parentNode == null) {
+                if (logEnabled()) {
+                    log(`Node has no parent: ${nodeStrShort(c)}`);
+                }
+            }
+            else {
+                DomEdit_removeChild(c.parentNode, c);
+            }
+        }, oldNodes);
+    };
     const nodes = SutilEffect__collectDomNodes(child);
     assertTrue(!equals(child, new SutilEffect(0, [])), "Empty child for replace child");
     if (!equals(oldChild, new SutilEffect(0, []))) {
@@ -821,18 +950,10 @@ export function SutilGroup__ReplaceChild_Z748E2B9E(this$, child, oldChild, inser
     iterate_1((n) => {
         DomEdit_insertBefore(parent, n, insertBefore);
     }, nodes);
-    iterate_1((c) => {
-        if (c.parentNode == null) {
-            if (logEnabled()) {
-                log(`Node has no parent: ${nodeStrShort(c)}`);
-            }
-        }
-        else {
-            DomEdit_removeChild(c.parentNode, c);
-        }
-    }, SutilEffect__collectDomNodes(oldChild));
+    deleteOldNodes();
     if (oldChild.tag === 2) {
-        SutilGroup__Dispose(oldChild.fields[0]);
+        const g = oldChild.fields[0];
+        SutilGroup__Dispose(g);
     }
     if ((insertBefore == null) ? true : equals(oldChild, new SutilEffect(0, []))) {
         SutilGroup__AddChild_2AD740C9(this$, child);
@@ -888,7 +1009,8 @@ export function SutilGroup__updateChildrenPrev(this$) {
         while (enumerator["System.Collections.IEnumerator.MoveNext"]()) {
             const c = enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]();
             if (c.tag === 2) {
-                SutilGroup__set_PrevNode_2AD740C9(c.fields[0], p);
+                const v = c.fields[0];
+                SutilGroup__set_PrevNode_2AD740C9(v, p);
             }
             p = c;
         }
@@ -904,10 +1026,13 @@ export function SutilGroup__parentDomNode(this$) {
         while (true) {
             const p = p_mut;
             switch (p.tag) {
-                case 1:
-                    return p.fields[0];
+                case 1: {
+                    const n = p.fields[0];
+                    return n;
+                }
                 case 2: {
-                    p_mut = SutilGroup__get_Parent(p.fields[0]);
+                    const v = p.fields[0];
+                    p_mut = SutilGroup__get_Parent(v);
                     continue findParent;
                 }
                 default:
@@ -1007,9 +1132,15 @@ export function sutilResult(node) {
 }
 
 export function sideEffect(ctx, name) {
-    let tn, d;
+    const text = () => {
+        const tn = ctx.Document.createTextNode(name);
+        const d = ctx.Document.createElement("div");
+        DomEdit_appendChild(d, tn);
+        BuildContext__AddChild_2AD740C9(ctx, new SutilEffect(1, [d]));
+        return d;
+    };
     if (ctx.Debug) {
-        return new SutilEffect(1, [(tn = ctx.Document.createTextNode(name), (d = ctx.Document.createElement("div"), (DomEdit_appendChild(d, tn), (BuildContext__AddChild_2AD740C9(ctx, new SutilEffect(1, [d])), d))))]);
+        return new SutilEffect(1, [text()]);
     }
     else {
         return new SutilEffect(0, []);
@@ -1062,11 +1193,12 @@ function defaultContext(parent) {
 }
 
 function makeContext(parent) {
+    const getSutilClasses = (e) => {
+        const classes = filter((cls) => cls.startsWith("sutil"), map((i) => (e.classList[i]), toList(rangeDouble(0, 1, e.classList.length - 1))));
+        return classes;
+    };
     const bind$0040 = defaultContext(parent);
-    return new BuildContext(bind$0040.Document, bind$0040.Parent, bind$0040.Previous, bind$0040.Action, bind$0040.MakeName, bind((e_1) => {
-        let e;
-        return tryHead((e = e_1, filter((cls) => cls.startsWith("sutil"), map((i) => (e.classList[i]), toList(rangeDouble(0, 1, e.classList.length - 1))))));
-    }, ofNullable(parent)), bind$0040.Debug, bind$0040.Pipeline);
+    return new BuildContext(bind$0040.Document, bind$0040.Parent, bind$0040.Previous, bind$0040.Action, bind$0040.MakeName, bind((e_1) => tryHead(getSutilClasses(e_1)), ofNullable(parent)), bind$0040.Debug, bind$0040.Pipeline);
 }
 
 function makeShadowContext(customElement) {
@@ -1128,7 +1260,8 @@ export function buildOnly(f, ctx) {
 
 function pipelineDispatchMount(ctx, result) {
     if (result.tag === 1) {
-        CustomDispatch$1_dispatch_4FBB8B24(result.fields[0], Event_Mount);
+        const n = result.fields[0];
+        CustomDispatch$1_dispatch_4FBB8B24(n, Event_Mount);
     }
     return [ctx, result];
 }
@@ -1160,15 +1293,18 @@ function pipelineAddClass(ctx, result) {
 }
 
 export function buildChildren(xs, ctx) {
+    const e = ctx.Parent;
     let prev = new SutilEffect(0, []);
     const enumerator = getEnumerator(xs);
     try {
         while (enumerator["System.Collections.IEnumerator.MoveNext"]()) {
-            const matchValue = build(enumerator["System.Collections.Generic.IEnumerator`1.get_Current"](), ContextHelpers_withPrevious(prev, ctx));
+            const x = enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]();
+            const matchValue = build(x, ContextHelpers_withPrevious(prev, ctx));
             if (matchValue.tag === 0) {
             }
             else {
-                prev = matchValue;
+                const r = matchValue;
+                prev = r;
             }
         }
     }
@@ -1181,8 +1317,9 @@ export function mountOnShadowRoot(app, host) {
     const el = build(app, makeShadowContext(host));
     switch (el.tag) {
         case 2: {
+            const group = el.fields[0];
             const shadowRoot_1 = host.shadowRoot;
-            const enumerator = getEnumerator(SutilGroup__DomNodes(el.fields[0]));
+            const enumerator = getEnumerator(SutilGroup__DomNodes(group));
             try {
                 while (enumerator["System.Collections.IEnumerator.MoveNext"]()) {
                     const node_1 = enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]();
@@ -1199,20 +1336,24 @@ export function mountOnShadowRoot(app, host) {
             break;
         }
         default: {
+            const node = el.fields[0];
             const shadowRoot = host.shadowRoot;
-            shadowRoot.appendChild(el.fields[0]);
+            shadowRoot.appendChild(node);
         }
     }
-    return () => {
+    const dispose = () => {
         SutilEffect__Dispose(el);
     };
+    return dispose;
 }
 
 export function mount(app, _arg1_, _arg1__1) {
     let bind$0040;
     const _arg = [_arg1_, _arg1__1];
-    const node = ElementRef__get_AsElement(_arg[1]);
-    if (_arg[0].tag === 1) {
+    const op = _arg[0];
+    const eref = _arg[1];
+    const node = ElementRef__get_AsElement(eref);
+    if (op.tag === 1) {
         return build(app, (bind$0040 = makeContext(node.parentElement), new BuildContext(bind$0040.Document, bind$0040.Parent, new SutilEffect(1, [node]), bind$0040.Action, bind$0040.MakeName, bind$0040.Class, bind$0040.Debug, bind$0040.Pipeline)));
     }
     else {

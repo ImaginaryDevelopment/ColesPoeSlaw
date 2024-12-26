@@ -1734,8 +1734,8 @@ export function CssEngine$1__get_borderCollapseInheritFromParent(_) {
  * Sets the distance between the borders of adjacent <table> cells. Applies only when border-collapse is separate.
  */
 export function CssEngine$1__borderSpacing_Z3438B9D(_, horizontal, vertical) {
-    let x_1;
-    return _.mk("border-spacing", (horizontal + " ") + ((x_1 = vertical, (x_1 == null) ? "" : x_1)));
+    let x_1, x_1_1;
+    return _.mk("border-spacing", (horizontal + " ") + ((x_1 = vertical, (x_1 == null) ? "" : ((x_1_1 = x_1, x_1_1)))));
 }
 
 /**
@@ -4006,8 +4006,8 @@ export function CssEngine$1__flexGrow_Z524259A4(_, value) {
  * Shorthand of flex-grow, flex-shrink and flex-basis
  */
 export function CssEngine$1__flex_738B9151(_, grow, shrink, basis) {
-    let x_1, x_3;
-    return _.mk("flex", (((int32ToString(grow) + " ") + ((x_1 = shrink, (x_1 == null) ? "" : int32ToString(x_1)))) + " ") + ((x_3 = basis, (x_3 == null) ? "" : x_3)));
+    let x_1, x_1_1, x_3, x_1_2;
+    return _.mk("flex", (((int32ToString(grow) + " ") + ((x_1 = shrink, (x_1 == null) ? "" : ((x_1_1 = (x_1 | 0), int32ToString(x_1_1)))))) + " ") + ((x_3 = basis, (x_3 == null) ? "" : ((x_1_2 = x_3, x_1_2)))));
 }
 
 /**
@@ -4030,7 +4030,8 @@ export function CssEngine$1__flex_Z721C83C5(_, value) {
  * ```
  */
 export function CssEngine$1__gridTemplateColumns_Z5D8246D(_, value) {
-    return _.mk("grid-template-columns", join(" ", map_1((arg) => (int32ToString(arg) + "px"), value)));
+    const addPixels = (x) => (x + "px");
+    return _.mk("grid-template-columns", join(" ", map_1((arg) => addPixels(int32ToString(arg)), value)));
 }
 
 /**
@@ -4085,7 +4086,14 @@ export function CssEngine$1__gridTemplateColumns_Z40D2EFDA(_, value) {
  * ```
  */
 export function CssEngine$1__gridTemplateColumns_Z2B2DBEAB(_, count, size, areaName) {
-    const areaName_1 = (areaName == null) ? "" : ((" [" + areaName) + "]");
+    let areaName_1;
+    if (areaName == null) {
+        areaName_1 = "";
+    }
+    else {
+        const n = areaName;
+        areaName_1 = ((" [" + n) + "]");
+    }
     return _.mk("grid-template-columns", (((("repeat(" + int32ToString(count)) + ", ") + size) + areaName_1) + ")");
 }
 
@@ -4102,7 +4110,8 @@ export function CssEngine$1__gridTemplateColumns_Z2B2DBEAB(_, count, size, areaN
  * ```
  */
 export function CssEngine$1__gridTemplateRows_Z5D8246D(_, value) {
-    return _.mk("grid-template-rows", join(" ", map_1((arg) => (int32ToString(arg) + "px"), value)));
+    const addPixels = (x) => (x + "px");
+    return _.mk("grid-template-rows", join(" ", map_1((arg) => addPixels(int32ToString(arg)), value)));
 }
 
 /**
@@ -4156,7 +4165,14 @@ export function CssEngine$1__gridTemplateRows_Z40D2EFDA(_, value) {
  * ```
  */
 export function CssEngine$1__gridTemplateRows_Z2B2DBEAB(_, count, size, areaName) {
-    const areaName_1 = (areaName == null) ? "" : ((" [" + areaName) + "]");
+    let areaName_1;
+    if (areaName == null) {
+        areaName_1 = "";
+    }
+    else {
+        const n = areaName;
+        areaName_1 = ((" [" + n) + "]");
+    }
     return _.mk("grid-template-rows", (((("repeat(" + int32ToString(count)) + ", ") + size) + areaName_1) + ")");
 }
 
@@ -4180,7 +4196,10 @@ export function CssEngine$1__gridTemplateRows_Z2B2DBEAB(_, count, size, areaName
  * ```
  */
 export function CssEngine$1__gridTemplateAreas_Z20E1E285(_, value) {
-    return _.mk("grid-template-areas", join("\n", map((arg) => (("\'" + join(" ", arg)) + "\'"), value)));
+    const wrapLine = (x) => (("\'" + x) + "\'");
+    const lines = map((arg) => wrapLine(join(" ", arg)), value);
+    const block = join("\n", lines);
+    return _.mk("grid-template-areas", block);
 }
 
 /**
@@ -4203,7 +4222,10 @@ export function CssEngine$1__gridTemplateAreas_Z20E1E285(_, value) {
  * ```
  */
 export function CssEngine$1__gridTemplateAreas_7B2DFCBB(_, value) {
-    return _.mk("grid-template-areas", join("\n", map_2((arg) => (("\'" + join(" ", arg)) + "\'"), value)));
+    const wrapLine = (x) => (("\'" + x) + "\'");
+    const lines = map_2((arg) => wrapLine(join(" ", arg)), value);
+    const block = join("\n", lines);
+    return _.mk("grid-template-areas", block);
 }
 
 /**
@@ -4219,7 +4241,8 @@ export function CssEngine$1__gridTemplateAreas_7B2DFCBB(_, value) {
  * ```
  */
 export function CssEngine$1__gridTemplateAreas_5D66A394(_, value) {
-    return _.mk("grid-template-areas", ("\'" + join(" ", value)) + "\'");
+    const block = join(" ", value);
+    return _.mk("grid-template-areas", ("\'" + block) + "\'");
 }
 
 /**
@@ -4334,8 +4357,8 @@ export function CssEngine$1__gap_Z445F6BAF(_, rowColumnGap) {
  * ```
  */
 export function CssEngine$1__gridColumnStart_3B406CA4(_, value, count) {
-    let x_1;
-    return _.mk("grid-column-start", (value + " ") + ((x_1 = count, (x_1 == null) ? "" : int32ToString(x_1))));
+    let x_1, x_1_1;
+    return _.mk("grid-column-start", (value + " ") + ((x_1 = count, (x_1 == null) ? "" : ((x_1_1 = (x_1 | 0), int32ToString(x_1_1))))));
 }
 
 /**
@@ -4403,8 +4426,8 @@ export function CssEngine$1__gridColumnStart_1E159F80(_, value) {
  * ```
  */
 export function CssEngine$1__gridColumnEnd_3B406CA4(_, value, count) {
-    let x_1;
-    return _.mk("grid-column-end", (value + " ") + ((x_1 = count, (x_1 == null) ? "" : int32ToString(x_1))));
+    let x_1, x_1_1;
+    return _.mk("grid-column-end", (value + " ") + ((x_1 = count, (x_1 == null) ? "" : ((x_1_1 = (x_1 | 0), int32ToString(x_1_1))))));
 }
 
 /**
@@ -4470,8 +4493,8 @@ export function CssEngine$1__gridColumnEnd_1E159F80(_, value) {
  * ```
  */
 export function CssEngine$1__gridRowStart_3B406CA4(_, value, count) {
-    let x_1;
-    return _.mk("grid-row-start", (value + " ") + ((x_1 = count, (x_1 == null) ? "" : int32ToString(x_1))));
+    let x_1, x_1_1;
+    return _.mk("grid-row-start", (value + " ") + ((x_1 = count, (x_1 == null) ? "" : ((x_1_1 = (x_1 | 0), int32ToString(x_1_1))))));
 }
 
 /**
@@ -4539,8 +4562,8 @@ export function CssEngine$1__gridRowStart_1E159F80(_, value) {
  * ```
  */
 export function CssEngine$1__gridRowEnd_3B406CA4(_, value, count) {
-    let x_1;
-    return _.mk("grid-row-end", (value + " ") + ((x_1 = count, (x_1 == null) ? "" : int32ToString(x_1))));
+    let x_1, x_1_1;
+    return _.mk("grid-row-end", (value + " ") + ((x_1 = count, (x_1 == null) ? "" : ((x_1_1 = (x_1 | 0), int32ToString(x_1_1))))));
 }
 
 /**
@@ -5246,14 +5269,16 @@ export function CssEngine$1__borderWidth_Z524259A4(_, width) {
  * Sets the width of an element's border.
  */
 export function CssEngine$1__borderWidth_Z3438B9D(_, top, right) {
-    return _.mk("border-width", top + ((right == null) ? "" : (" " + right)));
+    let x_1;
+    return _.mk("border-width", top + ((right == null) ? "" : ((x_1 = right, " " + x_1))));
 }
 
 /**
  * Sets the width of an element's border.
  */
 export function CssEngine$1__borderWidth_Z7D5F3D7D(_, top, right, bottom, left) {
-    return _.mk("border-width", ((((top + " ") + right) + " ") + bottom) + ((left == null) ? "" : (" " + left)));
+    let x_3;
+    return _.mk("border-width", ((((top + " ") + right) + " ") + bottom) + ((left == null) ? "" : ((x_3 = left, " " + x_3))));
 }
 
 /**

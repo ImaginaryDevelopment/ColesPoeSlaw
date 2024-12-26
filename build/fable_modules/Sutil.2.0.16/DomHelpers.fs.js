@@ -2,12 +2,13 @@ import { error, log as log_1, isEnabled } from "./Logging.fs.js";
 import { value as value_3, some } from "../fable-library-js.4.21.0/Option.js";
 import { toString, Union } from "../fable-library-js.4.21.0/Types.js";
 import { union_type, bool_type } from "../fable-library-js.4.21.0/Reflection.js";
-import { defaultOf, equals, disposeSafe, getEnumerator } from "../fable-library-js.4.21.0/Util.js";
+import { comparePrimitives, defaultOf, equals, disposeSafe, getEnumerator } from "../fable-library-js.4.21.0/Util.js";
 import { iterate, length, singleton, empty } from "../fable-library-js.4.21.0/List.js";
 import { makeIdGenerator } from "./Helpers.fs.js";
 import { printf, toText, split, substring, replace } from "../fable-library-js.4.21.0/String.js";
 import { toList, map as map_1, collect, empty as empty_1, singleton as singleton_1, append, delay } from "../fable-library-js.4.21.0/Seq.js";
 import { Window_getComputedStyle_Z5966C024, Window_requestAnimationFrame_1A119E11 } from "./Interop.fs.js";
+import { FSharpSet__Contains, ofSeq } from "../fable-library-js.4.21.0/Set.js";
 import { parse } from "../fable-library-js.4.21.0/Double.js";
 import { rangeDouble } from "../fable-library-js.4.21.0/Range.js";
 
@@ -70,7 +71,8 @@ export function NodeKey_getCreate(node, key, cons) {
         return newVal;
     }
     else {
-        return value_3(matchValue);
+        const v = value_3(matchValue);
+        return v;
     }
 }
 
@@ -142,15 +144,19 @@ export function CustomDispatch$1_toCustomEvent_Z4DAE4619(props) {
             const p = enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]();
             switch (p.tag) {
                 case 1: {
-                    data["bubbles"] = p.fields[0];
+                    const b = p.fields[0];
+                    data["bubbles"] = b;
                     break;
                 }
                 case 2: {
-                    data["composed"] = p.fields[0];
+                    const c = p.fields[0];
+                    data["composed"] = c;
                     break;
                 }
-                default:
-                    data["detail"] = p.fields[0];
+                default: {
+                    const d = p.fields[0];
+                    data["detail"] = d;
+                }
             }
         }
     }
@@ -368,20 +374,21 @@ function clearDisposables(node) {
 }
 
 function cleanup(node) {
-    const d_1 = getDisposables(node);
-    if (logEnabled()) {
-        log(`cleanup ${nodeStr(node)} - ${length(d_1)} disposable(s)`);
-    }
-    iterate((d) => {
+    dispatchSimple(node, Event_Unmount);
+    const safeDispose = (d) => {
         try {
             disposeSafe(d);
         }
         catch (x) {
             error(`Disposing ${d}: ${x} from ${nodeStr(node)}`);
         }
-    }, d_1);
+    };
+    const d_1 = getDisposables(node);
+    if (logEnabled()) {
+        log(`cleanup ${nodeStr(node)} - ${length(d_1)} disposable(s)`);
+    }
+    iterate(safeDispose, d_1);
     clearDisposables(node);
-    dispatchSimple(node, Event_Unmount);
 }
 
 export function assertTrue(condition, message) {
@@ -427,7 +434,8 @@ export function DomEdit_insertBefore(parent, child, refNode) {
 }
 
 export function DomEdit_insertAfter(parent, newChild, refChild) {
-    DomEdit_insertBefore(parent, newChild, (refChild == null) ? parent.firstChild : refChild.nextSibling);
+    const beforeChild = (refChild == null) ? parent.firstChild : refChild.nextSibling;
+    DomEdit_insertBefore(parent, newChild, beforeChild);
 }
 
 export function unmount(node) {
@@ -564,8 +572,24 @@ export function nullToEmpty(s) {
     }
 }
 
+const booleanAttributes = ofSeq(["hidden", "disabled", "readonly", "required", "checked"], {
+    Compare: comparePrimitives,
+});
+
+function isBooleanAttribute(name) {
+    return FSharpSet__Contains(booleanAttributes, name.toLocaleLowerCase());
+}
+
+function toBool(v) {
+    if (typeof v === "boolean") {
+        return v;
+    }
+    else {
+        return toString(v) !== "false";
+    }
+}
+
 export function setAttribute(el, name, value) {
-    let name_1;
     const svalue = toString(value);
     if (name === "sutil-toggle-class") {
         ClassHelpers_toggleClass(svalue, el);
@@ -580,8 +604,8 @@ export function setAttribute(el, name, value) {
             break;
         }
         default:
-            if ((name_1 = name, ((((name_1 === "hidden") ? true : (name_1 === "disabled")) ? true : (name_1 === "readonly")) ? true : (name_1 === "required")) ? true : (name_1 === "checked"))) {
-                if ((typeof value === "boolean") ? value : (svalue !== "false")) {
+            if (isBooleanAttribute(name)) {
+                if (toBool(value)) {
                     el.setAttribute(name, "");
                 }
                 else {
@@ -605,16 +629,6 @@ export function setAttribute(el, name, value) {
             }
     }
 }
-
-const idSelector = (() => {
-    const clo = toText(printf("#%s"));
-    return clo;
-})();
-
-const classSelector = (() => {
-    const clo = toText(printf(".%s"));
-    return clo;
-})();
 
 function findElement(doc, selector) {
     return doc.querySelector(selector);

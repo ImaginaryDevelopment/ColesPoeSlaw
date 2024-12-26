@@ -39,9 +39,10 @@ export function Media_listenMedia_1AAA471B(query, handler) {
  */
 export function Media_bindMediaQuery_7FEBD4A7(query, view) {
     const s = Store_make(false);
-    return fragment([disposeOnUnmount(ofArray([disposable(Media_listenMedia_1AAA471B(query, (m) => {
+    const u = Media_listenMedia_1AAA471B(query, (m) => {
         StoreOperators_op_LessTwiddle(s, m);
-    })), s])), Bind_el_ZF0512D0(s, view)]);
+    });
+    return fragment([disposeOnUnmount(ofArray([disposable(u), s])), Bind_el_ZF0512D0(s, view)]);
 }
 
 /**
@@ -49,9 +50,10 @@ export function Media_bindMediaQuery_7FEBD4A7(query, view) {
  */
 export function Media_showIfMedia_1867901(query, f, trans, view) {
     const s = Store_make(false);
-    return fragment([disposeOnUnmount(ofArray([disposable(Media_listenMedia_1AAA471B(query, (m) => {
+    const u = Media_listenMedia_1AAA471B(query, (m) => {
         StoreOperators_op_LessTwiddle(s, m);
-    })), s])), transition(trans, StoreOperators_op_DotGreater(s, f), view)]);
+    });
+    return fragment([disposeOnUnmount(ofArray([disposable(u), s])), transition(trans, StoreOperators_op_DotGreater(s, f), view)]);
 }
 
 /**
@@ -66,9 +68,10 @@ export function Media_showIfMedia_5DF3B137(query, trans, view) {
  */
 export function Media_media_Z4DAEC249(query, map, app) {
     const s = Store_make(false);
-    return fragment([disposeOnUnmount(ofArray([disposable(Media_listenMedia_1AAA471B(query, (m) => {
+    const u = Media_listenMedia_1AAA471B(query, (m) => {
         StoreOperators_op_LessTwiddle(s, m);
-    })), s])), app(StoreOperators_op_DotGreater(s, map))]);
+    });
+    return fragment([disposeOnUnmount(ofArray([disposable(u), s])), app(StoreOperators_op_DotGreater(s, map))]);
 }
 
 export class CssMedia {

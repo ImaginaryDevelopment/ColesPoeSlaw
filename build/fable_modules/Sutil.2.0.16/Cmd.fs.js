@@ -90,12 +90,14 @@ export function Cmd_OfFunc_exec(task, a) {
  * into success or error (of exception)
  */
 export function Cmd_OfAsyncWith_either(start, task, arg, ofSuccess, ofError) {
+    const bind = (dispatch) => singleton_1.Delay(() => singleton_1.Bind(catchAsync(task(arg)), (_arg) => {
+        let x_1, x;
+        const r = _arg;
+        dispatch((r.tag === 1) ? ((x_1 = r.fields[0], ofError(x_1))) : ((x = r.fields[0], ofSuccess(x))));
+        return singleton_1.Zero();
+    }));
     return singleton((arg_1) => {
-        start(singleton_1.Delay(() => singleton_1.Bind(catchAsync(task(arg)), (_arg) => {
-            const r = _arg;
-            arg_1((r.tag === 1) ? ofError(r.fields[0]) : ofSuccess(r.fields[0]));
-            return singleton_1.Zero();
-        })));
+        start(bind(arg_1));
     });
 }
 
@@ -103,17 +105,19 @@ export function Cmd_OfAsyncWith_either(start, task, arg, ofSuccess, ofError) {
  * Command that will evaluate an async block and map the success
  */
 export function Cmd_OfAsyncWith_perform(start, task, arg, ofSuccess) {
+    const bind = (dispatch) => singleton_1.Delay(() => singleton_1.Bind(catchAsync(task(arg)), (_arg) => {
+        const r = _arg;
+        if (r.tag === 0) {
+            const x = r.fields[0];
+            dispatch(ofSuccess(x));
+            return singleton_1.Zero();
+        }
+        else {
+            return singleton_1.Zero();
+        }
+    }));
     return singleton((arg_1) => {
-        start(singleton_1.Delay(() => singleton_1.Bind(catchAsync(task(arg)), (_arg) => {
-            const r = _arg;
-            if (r.tag === 0) {
-                arg_1(ofSuccess(r.fields[0]));
-                return singleton_1.Zero();
-            }
-            else {
-                return singleton_1.Zero();
-            }
-        })));
+        start(bind(arg_1));
     });
 }
 
@@ -121,17 +125,19 @@ export function Cmd_OfAsyncWith_perform(start, task, arg, ofSuccess) {
  * Command that will evaluate an async block and map the error (of exception)
  */
 export function Cmd_OfAsyncWith_attempt(start, task, arg, ofError) {
+    const bind = (dispatch) => singleton_1.Delay(() => singleton_1.Bind(catchAsync(task(arg)), (_arg) => {
+        const r = _arg;
+        if (r.tag === 1) {
+            const x = r.fields[0];
+            dispatch(ofError(x));
+            return singleton_1.Zero();
+        }
+        else {
+            return singleton_1.Zero();
+        }
+    }));
     return singleton((arg_1) => {
-        start(singleton_1.Delay(() => singleton_1.Bind(catchAsync(task(arg)), (_arg) => {
-            const r = _arg;
-            if (r.tag === 1) {
-                arg_1(ofError(r.fields[0]));
-                return singleton_1.Zero();
-            }
-            else {
-                return singleton_1.Zero();
-            }
-        })));
+        start(bind(arg_1));
     });
 }
 
@@ -139,11 +145,13 @@ export function Cmd_OfAsyncWith_attempt(start, task, arg, ofError) {
  * Command that will evaluate an async block to the message
  */
 export function Cmd_OfAsyncWith_result(start, task) {
+    const bind = (dispatch) => singleton_1.Delay(() => singleton_1.Bind(task, (_arg) => {
+        const r = _arg;
+        dispatch(r);
+        return singleton_1.Zero();
+    }));
     return singleton((arg) => {
-        start(singleton_1.Delay(() => singleton_1.Bind(task, (_arg) => {
-            arg(_arg);
-            return singleton_1.Zero();
-        })));
+        start(bind(arg));
     });
 }
 
@@ -157,41 +165,41 @@ export function Cmd_OfAsync_start(x) {
  * Command to call `promise` block and map the results
  */
 export function Cmd_OfPromise_either(task, arg, ofSuccess, ofError) {
-    return singleton((dispatch) => {
-        task(arg).then((arg_3) => {
-            dispatch(ofSuccess(arg_3));
-        }).catch((arg_2) => {
-            dispatch(ofError(arg_2));
-        });
-    });
+    const bind = (dispatch) => {
+        task(arg).then((arg_3) => dispatch(ofSuccess(arg_3))).catch((arg_2) => dispatch(ofError(arg_2)));
+    };
+    return singleton(bind);
 }
 
 /**
  * Command to call `promise` block and map the success
  */
 export function Cmd_OfPromise_perform(task, arg, ofSuccess) {
-    return singleton((dispatch) => {
+    const bind = (dispatch) => {
         task(arg).then((arg_1) => dispatch(ofSuccess(arg_1)));
-    });
+    };
+    return singleton(bind);
 }
 
 /**
  * Command to call `promise` block and map the error
  */
 export function Cmd_OfPromise_attempt(task, arg, ofError) {
-    return singleton((dispatch) => {
+    const bind = (dispatch) => {
         task(arg).catch((arg_2) => {
             dispatch(ofError(arg_2));
         });
-    });
+    };
+    return singleton(bind);
 }
 
 /**
  * Command to dispatch the `promise` result
  */
 export function Cmd_OfPromise_result(task) {
-    return singleton((dispatch) => {
+    const bind = (dispatch) => {
         task.then(dispatch);
-    });
+    };
+    return singleton(bind);
 }
 

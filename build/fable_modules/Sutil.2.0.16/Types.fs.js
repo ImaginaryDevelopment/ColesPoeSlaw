@@ -274,12 +274,18 @@ export function ElementRef_$reflection() {
 
 export function ElementRef__get_AsElement(__) {
     switch (__.tag) {
-        case 1:
-            return document.querySelector(__.fields[0]);
-        case 2:
-            return __.fields[0];
-        default:
-            return document.querySelector("#" + __.fields[0]);
+        case 1: {
+            const s_1 = __.fields[0];
+            return document.querySelector(s_1);
+        }
+        case 2: {
+            const e = __.fields[0];
+            return e;
+        }
+        default: {
+            const s = __.fields[0];
+            return document.querySelector("#" + s);
+        }
     }
 }
 

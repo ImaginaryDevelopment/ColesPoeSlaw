@@ -1,12 +1,15 @@
 import { log as log_1, isEnabled } from "./Logging.fs.js";
 import { concat, chunkBySize, item, map, collect } from "../fable-library-js.4.21.0/Array.js";
 import { substring, printf, toText, join, split } from "../fable-library-js.4.21.0/String.js";
-import { disposeSafe, getEnumerator, defaultOf } from "../fable-library-js.4.21.0/Util.js";
+import { disposeSafe, getEnumerator, comparePrimitives, defaultOf } from "../fable-library-js.4.21.0/Util.js";
 import { filter, map as map_1 } from "../fable-library-js.4.21.0/Seq.js";
 import { filter as filter_1, choose, map as map_2 } from "../fable-library-js.4.21.0/List.js";
+import { ofSeq, FSharpMap__TryFind } from "../fable-library-js.4.21.0/Map.js";
+import { some } from "../fable-library-js.4.21.0/Option.js";
+import { isLetterOrDigit } from "../fable-library-js.4.21.0/Char.js";
 import { NamedStyleSheet, MediaRule, KeyFrames, KeyFrame, StyleSheetDefinition, StyleRule } from "./Types.fs.js";
 import { NodeKey_StyleClass, applyIfElement, ClassHelpers_addToClasslist, rafu, Event_Hide, Event_Show } from "./DomHelpers.fs.js";
-import { register } from "../ConstructStyleSheetsPolyfill.1.0.0-beta-001/ConstructStyleSheetsPolyfill.fs.js";
+import { register } from "./ConstructStyleSheetsPolyfill.fs.js";
 import { ContextHelpers_withPreProcess, SutilEffect__get_AsDomNode, ContextHelpers_withPostProcess, build, SutilElement_Define_7B1F8004, SutilEffect__IsConnected, BuildContext__get_ParentNode, SutilElement_Define_Z60F5000F } from "./Core.fs.js";
 import { toString } from "../fable-library-js.4.21.0/Types.js";
 
@@ -27,12 +30,20 @@ export function parseStyleAttr(style) {
 }
 
 export function emitStyleAttr(keyValues) {
-    return join("", map((tupledArg) => toText(printf("%s:%s;"))(tupledArg[0])(tupledArg[1]), keyValues));
+    return join("", map((tupledArg) => {
+        const k = tupledArg[0];
+        const v = tupledArg[1];
+        return toText(printf("%s:%s;"))(k)(v);
+    }, keyValues));
 }
 
 export function filterStyleAttr(name, style) {
     let array;
-    return emitStyleAttr((array = parseStyleAttr(style), array.filter((tupledArg) => (tupledArg[0] !== name))));
+    return emitStyleAttr((array = parseStyleAttr(style), array.filter((tupledArg) => {
+        const k = tupledArg[0];
+        const v = tupledArg[1];
+        return k !== name;
+    })));
 }
 
 export function getStyleAttr(el) {
@@ -41,7 +52,8 @@ export function getStyleAttr(el) {
         return "";
     }
     else {
-        return matchValue;
+        const s = matchValue;
+        return s;
     }
 }
 
@@ -102,19 +114,24 @@ export function specifySelector(styleName, selectors) {
         return selectors;
     }
     else {
-        return splitMapJoin(",", (s_2) => splitMapJoin(" ", (s_1) => mapPseudo((s) => {
+        const trans = (s) => {
             if (isPseudo(s) ? true : isGlobal(s)) {
                 return s;
             }
             else {
                 return toText(printf("%s.%s"))(s)(styleName);
             }
-        }, s_1), s_2), selectors);
+        };
+        return splitMapJoin(",", (s_2) => splitMapJoin(" ", (s_1) => mapPseudo(trans, s_1), s_2), selectors);
     }
 }
 
 function styleListToText(css) {
-    return (" {\n" + join("\n", map_1((tupledArg) => (`    ${tupledArg[0]}: ${tupledArg[1]};`), css))) + " }\n";
+    return (" {\n" + join("\n", map_1((tupledArg) => {
+        const nm = tupledArg[0];
+        const v = tupledArg[1];
+        return `    ${nm}: ${v};`;
+    }, css))) + " }\n";
 }
 
 function frameToText(f) {
@@ -131,32 +148,110 @@ function isSutilRule(nm, v) {
     return nm.startsWith("sutil");
 }
 
-function ruleToText(styleName, rule_1) {
-    const styleText = join("\n", map_1((tupledArg_1) => (`    ${tupledArg_1[0]}: ${tupledArg_1[1]};`), filter((arg) => {
+function ruleToText(classMap, styleName, rule_1) {
+    const styleText = (r) => join("\n", map_1((tupledArg_1) => {
+        const nm_1 = tupledArg_1[0];
+        const v_1 = tupledArg_1[1];
+        if (nm_1.endsWith("()")) {
+            const matchValue = FSharpMap__TryFind(classMap, nm_1.slice(0, -3 + 1));
+            if (matchValue != null) {
+                const subrule = matchValue;
+                return styleText(subrule);
+            }
+            else {
+                console.warn(some("No class found for substitution: "), nm_1.slice(0, -3 + 1));
+                return "";
+            }
+        }
+        else {
+            return `    ${nm_1}: ${v_1};`;
+        }
+    }, filter((arg) => {
         let tupledArg;
         return !((tupledArg = arg, isSutilRule(tupledArg[0], tupledArg[1])));
-    }, rule_1.Style)));
-    return join("", [specifySelector(styleName, rule_1.SelectorSpec), " {\n", styleText, "}\n"]);
+    }, r.Style)));
+    return join("", [specifySelector(styleName, rule_1.SelectorSpec), " {\n", styleText(rule_1), "}\n"]);
 }
 
-export function mediaRuleToText(styleName, rule_1) {
-    const arg_1 = join("\n", map_2((_arg) => entryToText(styleName, _arg), rule_1.Rules));
+export function mediaRuleToText(classMap, styleName, rule_1) {
+    const arg_1 = join("\n", map_2((_arg) => entryToText(classMap, styleName, _arg), rule_1.Rules));
     return toText(printf("@media %s {\n%s\n}\n"))(rule_1.Condition)(arg_1);
 }
 
-export function entryToText(styleName, _arg) {
+export function entryToText(classMap, styleName, _arg) {
     switch (_arg.tag) {
-        case 1:
-            return framesToText(_arg.fields[0]);
-        case 2:
-            return mediaRuleToText(styleName, _arg.fields[0]);
-        default:
-            return ruleToText(styleName, _arg.fields[0]);
+        case 1: {
+            const frames = _arg.fields[0];
+            return framesToText(frames);
+        }
+        case 2: {
+            const rule_2 = _arg.fields[0];
+            return mediaRuleToText(classMap, styleName, rule_2);
+        }
+        default: {
+            const rule_1 = _arg.fields[0];
+            return ruleToText(classMap, styleName, rule_1);
+        }
     }
 }
 
+function isClassChar(c) {
+    if (isLetterOrDigit(c) ? true : (c === "-")) {
+        return true;
+    }
+    else {
+        return c === "_";
+    }
+}
+
+function isClassName(s) {
+    const array = s.split("");
+    return array.every(isClassChar);
+}
+
+function isClassOnly(s) {
+    if ((s.length >= 2) && (s[0] === ".")) {
+        return isClassName(substring(s, 1));
+    }
+    else {
+        return false;
+    }
+}
+
+export function getClassMap(styleSheet) {
+    return ofSeq(choose((d) => {
+        let r;
+        let matchResult, r_1;
+        if (d.tag === 0) {
+            if ((r = d.fields[0], isClassOnly(r.SelectorSpec))) {
+                matchResult = 0;
+                r_1 = d.fields[0];
+            }
+            else {
+                matchResult = 1;
+            }
+        }
+        else {
+            matchResult = 1;
+        }
+        switch (matchResult) {
+            case 0:
+                return [substring(r_1.SelectorSpec, 1), r_1];
+            default:
+                return undefined;
+        }
+    }, styleSheet), {
+        Compare: comparePrimitives,
+    });
+}
+
+export function includeRule(name) {
+    return [name + "()", ""];
+}
+
 function styleSheetAsText(styleSheet) {
-    return join("\n", map_2((_arg) => entryToText("", _arg), styleSheet));
+    const classMap = getClassMap(styleSheet);
+    return join("\n", map_2((_arg) => entryToText(classMap, "", _arg), styleSheet));
 }
 
 function addStyleSheet(doc, styleName, styleSheet) {
@@ -165,7 +260,8 @@ function addStyleSheet(doc, styleName, styleSheet) {
     const enumerator = getEnumerator(styleSheet);
     try {
         while (enumerator["System.Collections.IEnumerator.MoveNext"]()) {
-            (newChild = ((data = entryToText(styleName, enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]()), doc.createTextNode(data))), style.appendChild(newChild));
+            const entry = enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]();
+            (newChild = ((data = entryToText(getClassMap(styleSheet), styleName, entry), doc.createTextNode(data))), style.appendChild(newChild));
         }
     }
     finally {
@@ -184,7 +280,8 @@ export function addGlobalStyleSheet(doc, styleSheet) {
  * Define a CSS styling rule
  */
 export function rule(selector, style) {
-    return new StyleSheetDefinition(0, [new StyleRule(selector, style)]);
+    const result = new StyleSheetDefinition(0, [new StyleRule(selector, style)]);
+    return result;
 }
 
 /**
@@ -248,7 +345,8 @@ function ruleMatchEl(el, rule_1) {
 function rulesOf(styleSheet) {
     return choose((x) => x, map_2((_arg) => {
         if (_arg.tag === 0) {
-            return _arg.fields[0];
+            const r = _arg.fields[0];
+            return r;
         }
         else {
             return undefined;
@@ -257,27 +355,33 @@ function rulesOf(styleSheet) {
 }
 
 function applyCustomRulesToElement(rules, e) {
+    let v, nm, v_1, nm_1, v_2, nm_2;
     const enumerator = getEnumerator(filter_1((rule_1) => ruleMatchEl(e, rule_1), rules));
     try {
         while (enumerator["System.Collections.IEnumerator.MoveNext"]()) {
-            const enumerator_1 = getEnumerator(enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]().Style);
+            const rule_2 = enumerator["System.Collections.Generic.IEnumerator`1.get_Current"]();
+            const enumerator_1 = getEnumerator(rule_2.Style);
             try {
                 while (enumerator_1["System.Collections.IEnumerator.MoveNext"]()) {
                     const custom = enumerator_1["System.Collections.Generic.IEnumerator`1.get_Current"]();
-                    switch (custom[0]) {
-                        case "sutil-use-global": {
-                            throw new Error("sutil-use-global not supported");
-                            break;
-                        }
-                        case "sutil-use-parent": {
-                            break;
-                        }
-                        case "sutil-add-class": {
-                            ClassHelpers_addToClasslist(toString(custom[1]), e);
-                            break;
-                        }
-                        default:
-                            (e.style).setProperty(custom[0], toString(custom[1]));
+                    if ((v = custom[1], (nm = custom[0], nm === "sutil-use-global"))) {
+                        const v_3 = custom[1];
+                        const nm_3 = custom[0];
+                        throw new Error("sutil-use-global not supported");
+                    }
+                    else if ((v_1 = custom[1], (nm_1 = custom[0], nm_1 === "sutil-use-parent"))) {
+                        const v_4 = custom[1];
+                        const nm_4 = custom[0];
+                    }
+                    else if ((v_2 = custom[1], (nm_2 = custom[0], nm_2 === "sutil-add-class"))) {
+                        const v_5 = custom[1];
+                        const nm_5 = custom[0];
+                        ClassHelpers_addToClasslist(toString(v_5), e);
+                    }
+                    else {
+                        const v_6 = custom[1];
+                        const nm_6 = custom[0];
+                        (e.style).setProperty(nm_6, toString(v_6));
                     }
                 }
             }
@@ -294,9 +398,10 @@ function applyCustomRulesToElement(rules, e) {
 function applyCustomRules(rules, ctx, result) {
     let rules_1;
     if (result.tag === 1) {
+        const n = result.fields[0];
         applyIfElement((rules_1 = rulesOf(rules), (e) => {
             applyCustomRulesToElement(rules_1, e);
-        }), result.fields[0]);
+        }), n);
     }
     return [ctx, result];
 }

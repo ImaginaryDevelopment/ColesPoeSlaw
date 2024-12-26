@@ -5,7 +5,7 @@ import { float64_type, record_type, bool_type, string_type, class_type, union_ty
 import { makeStore } from "./ObservableStore.fs.js";
 import { interval } from "./DomHelpers.fs.js";
 import { Store_modify } from "./Store.fs.js";
-import { take as take_1, ofArray, map, mapIndexed, cons, filter, isEmpty, fold, length, append, singleton, empty } from "../fable-library-js.4.21.0/List.js";
+import { take as take_1, ofArray, map, fold, mapIndexed, cons, filter, isEmpty, length, append, singleton, empty } from "../fable-library-js.4.21.0/List.js";
 import { rangeChar, rangeDouble } from "../fable-library-js.4.21.0/Range.js";
 import { printf, toText } from "../fable-library-js.4.21.0/String.js";
 
@@ -80,9 +80,24 @@ export function DataSimulation_CountList_4F7761DC(min, max, delay) {
 export function DataSimulation_Records_Z46B86D6D(data, update, maxEditsPerTick, allowCreateDelete, delay) {
     const dataLen = length(data) | 0;
     let removed = empty();
-    return DataSimulation_Stream(() => data, (_arg, current_2) => fold((current$0027, _arg_1) => {
-        const current_1 = current$0027;
-        const matchValue = allowCreateDelete ? ((isEmpty(current_1) && !isEmpty(removed)) ? (new Edit(1, [])) : (isEmpty(removed) ? Random_pickOne([new Edit(2, []), new Edit(3, [])]) : Random_pickOne([new Edit(1, []), new Edit(2, []), new Edit(3, [])]))) : (new Edit(2, []));
+    const chooseEdit = (current) => {
+        if (allowCreateDelete) {
+            if (isEmpty(current) && !isEmpty(removed)) {
+                return new Edit(1, []);
+            }
+            else if (isEmpty(removed)) {
+                return Random_pickOne([new Edit(2, []), new Edit(3, [])]);
+            }
+            else {
+                return Random_pickOne([new Edit(1, []), new Edit(2, []), new Edit(3, [])]);
+            }
+        }
+        else {
+            return new Edit(2, []);
+        }
+    };
+    const editOne = (current_1) => {
+        const matchValue = chooseEdit(current_1);
         switch (matchValue.tag) {
             case 1: {
                 const item = Random_pickOne(removed);
@@ -108,7 +123,12 @@ export function DataSimulation_Records_Z46B86D6D(data, update, maxEditsPerTick, 
             default:
                 return current_1;
         }
-    }, current_2, toList(rangeDouble(1, 1, 1 + ~~((Math.random()) * maxEditsPerTick)))), delay);
+    };
+    const edit = (_arg, current_2) => {
+        const n = (1 + ~~((Math.random()) * maxEditsPerTick)) | 0;
+        return fold((current$0027, _arg_1) => editOne(current$0027), current_2, toList(rangeDouble(1, 1, n)));
+    };
+    return DataSimulation_Stream(() => data, edit, delay);
 }
 
 export function DataSimulation_Records_5F9D7765(data, update, delay) {
@@ -187,7 +207,8 @@ export function SampleData_updateStock(r) {
 }
 
 export function SampleData_sampleStocks(number) {
-    return map((_arg) => (new SampleData_Stock(fold_1((s, c) => toText(printf("%s%c"))(s)(c), "", take(4, Random_shuffleR(toList(rangeChar("A", "Z"))))), round((Math.random()) * 100, 2))), toList(rangeDouble(1, 1, number)));
+    const nextSymbol = () => fold_1((s, c) => toText(printf("%s%c"))(s)(c), "", take(4, Random_shuffleR(toList(rangeChar("A", "Z")))));
+    return map((_arg) => (new SampleData_Stock(nextSymbol(), round((Math.random()) * 100, 2))), toList(rangeDouble(1, 1, number)));
 }
 
 export function SampleData_stockFeed(numStocks, delay) {

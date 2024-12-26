@@ -32,19 +32,19 @@ let dmgPattern =
     sprintf "%s%s" start numRepeat
 let (|AttackSpeed|_|) =
     function
-    |RMatch "Attacks per Second\s*:\s*(\d+\.\d+)" rAps -> rAps.Groups[1].Value |> float |> Some
+    |RMatch "Attacks per Second\s*:\s*(?<speed>\d+\.\d+)" rAps -> rAps.Groups["speed"].Value |> float |> Some
     |_ -> None
 let (|ApsSpecial|_|) =
     function
-    |RMatch "(\d+)% increased Attack Speed while a Rare or Unique Enemy is Nearby" rAps -> rAps.Groups[1].Value |> float |> Some
+    |RMatch "(?<aps>\d+)% increased Attack Speed while a Rare or Unique Enemy is Nearby" rAps -> rAps["aps"].Value |> float |> Some
     |_ -> None
 let (|CritChance|_|) =
     function
-    | RMatch "Critical Hit Chance: (\d+\.\d+)%" rCrit -> rCrit.Groups[1].Value |> float |> Some
+    | RMatch "Critical Hit Chance: (?<crit>\d+\.\d+)%" rCrit -> rCrit["crit"].Value |> float |> Some
     | _ -> None
 let (|CritBonus|_|) =
     function
-    | RMatch "\\+(\d+)% to Critical Damage Bonus" rCb -> rCb.Groups[1].Value |> float |> Some
+    | RMatch "\\+(?<crit>\d+)% to Critical Damage Bonus" rCb -> rCb["crit"].Value |> float |> Some
     | _ -> None
 let getDamageEntries =
     function

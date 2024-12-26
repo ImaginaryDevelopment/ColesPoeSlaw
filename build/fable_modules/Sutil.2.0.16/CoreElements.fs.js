@@ -1,7 +1,7 @@
 import { log as log_1, isEnabled } from "./Logging.fs.js";
 import { setHeadTitle, setHeadEmbedScript, setHeadScript, setHeadStylesheet, Event_Hide, Event_Show, Event_Unmount, Event_Mount, asElement, rafu, once, Browser_Types_NodeList__NodeList_toSeq, Event_notifyUpdated, NodeKey_StyleClass, visitElementChildren, applyIfElement, setAttribute, textNode, Event_ElementReady, CustomDispatch$1_dispatch_4FBB8B24, ClassHelpers_removeFromClasslist, ClassHelpers_addToClasslist, ClassHelpers_toggleClass, ClassHelpers_setClass, setSvId, domId } from "./DomHelpers.fs.js";
 import { disposeSafe, getEnumerator, curry2, defaultOf, equals, int32ToString } from "../fable-library-js.4.21.0/Util.js";
-import { BuildContext, DomAction, SutilEffect_RegisterUnsubscribe_Z3FDC8A2C, SutilEffect_RegisterDisposable_5FAE877D, SutilGroup__AddChild_2AD740C9, SutilEffect_MakeGroup_5BDBED5B, sutilResult, BuildContext__get_ParentNode, SutilEffect__get_AsDomNode, SutilEffect__collectDomNodes, BuildContext__AddChild_2AD740C9, SutilEffect, ContextHelpers_withParent, buildChildren, SutilElement_Define_1C1F44C0, BuildContext__get_ParentElement, build, SutilEffect__Clear, SutilElement_Define_7B1F8004, SutilEffect_RegisterUnsubscribe_Z401BC241, SutilEffect_RegisterDisposable_2069CF16, SutilElement_Define_Z60F5000F } from "./Core.fs.js";
+import { BuildContext, DomAction, SutilEffect_RegisterUnsubscribe_Z3FDC8A2C, SutilEffect_RegisterDisposable_5FAE877D, SutilGroup__AddChild_2AD740C9, SutilEffect_MakeGroup_5BDBED5B, sutilResult, BuildContext__get_ParentNode, SutilEffect__get_AsDomNode, SutilEffect__collectDomNodes, BuildContext__AddChild_2AD740C9, ContextHelpers_withParent, buildChildren, SutilEffect, SutilElement_Define_1C1F44C0, BuildContext__get_ParentElement, build, SutilEffect__Clear, SutilElement_Define_7B1F8004, SutilEffect_RegisterUnsubscribe_Z401BC241, SutilEffect_RegisterDisposable_2069CF16, SutilElement_Define_Z60F5000F } from "./Core.fs.js";
 import { singleton, iterate } from "../fable-library-js.4.21.0/List.js";
 import { join, printf, toText } from "../fable-library-js.4.21.0/String.js";
 import { Union, toString } from "../fable-library-js.4.21.0/Types.js";
@@ -140,7 +140,8 @@ export function removeClass(name) {
 export function elns(ns, tag, xs) {
     return SutilElement_Define_1C1F44C0(toText(printf("<%s>"))(tag), xs, (ctx) => {
         const e = makeElementWithSutilId(ctx.Document, tag, ns);
-        buildChildren(xs, ContextHelpers_withParent(new SutilEffect(1, [e]), ctx));
+        const snodeEl = new SutilEffect(1, [e]);
+        buildChildren(xs, ContextHelpers_withParent(snodeEl, ctx));
         BuildContext__AddChild_2AD740C9(ctx, new SutilEffect(1, [e]));
         CustomDispatch$1_dispatch_4FBB8B24(e, Event_ElementReady);
         return e;
@@ -184,12 +185,13 @@ export function elAppend(selector, xs) {
         if (e == null) {
             throw new Error("Not found " + selector);
         }
+        const snodeEl = new SutilEffect(1, [e]);
         const id = domId() | 0;
         if (logEnabled()) {
             log((("append <" + selector) + "> #") + int32ToString(id));
         }
         setSvId(e, id);
-        buildChildren(xs, ContextHelpers_withParent(new SutilEffect(1, [e]), ctx));
+        buildChildren(xs, ContextHelpers_withParent(snodeEl, ctx));
     });
 }
 
@@ -243,7 +245,8 @@ export function attr(name, value) {
         let arg_5, arg_6;
         const parent = SutilEffect__get_AsDomNode(ctx.Parent);
         try {
-            setAttribute(parent, name, value);
+            const e = parent;
+            setAttribute(e, name, value);
         }
         catch (matchValue) {
             throw new Error((arg_5 = parent.nodeType, (arg_6 = parent.tagName, toText(printf("Cannot set attribute \'%s\' = \'%A\' on a %A %f %s"))(name)(value)(parent)(arg_5)(arg_6))));
@@ -291,11 +294,12 @@ export function postProcess(f, view) {
 }
 
 export function postProcessElements(f, view) {
-    return postProcess((se) => {
+    const helper = (se) => {
         console.log(some("post"), toString(se));
         applyIfElement(f, SutilEffect__get_AsDomNode(se));
         return se;
-    }, view);
+    };
+    return postProcess(helper, view);
 }
 
 export function listenToResize(dispatch) {
@@ -313,7 +317,8 @@ export function listenToResize(dispatch) {
 
 export function subscribe(source, handler) {
     return SutilElement_Define_Z60F5000F("subscribe", (ctx) => {
-        SutilEffect_RegisterDisposable_2069CF16(ctx.Parent, subscribe_1(curry2(handler)(ctx), source));
+        const unsub = subscribe_1(curry2(handler)(ctx), source);
+        SutilEffect_RegisterDisposable_2069CF16(ctx.Parent, unsub);
     });
 }
 
@@ -350,11 +355,19 @@ export function unclass$0027(n) {
 }
 
 export function style(cssAttrs) {
-    return attr("style", join("", map((tupledArg) => (`${tupledArg[0]}: ${tupledArg[1]};`), cssAttrs)));
+    return attr("style", join("", map((tupledArg) => {
+        const n = tupledArg[0];
+        const v = tupledArg[1];
+        return `${n}: ${v};`;
+    }, cssAttrs)));
 }
 
 export function styleAppend(cssAttrs) {
-    return attr("style+", join("", map((tupledArg) => (`${tupledArg[0]}: ${tupledArg[1]};`), cssAttrs)));
+    return attr("style+", join("", map((tupledArg) => {
+        const n = tupledArg[0];
+        const v = tupledArg[1];
+        return `${n}: ${v};`;
+    }, cssAttrs)));
 }
 
 export class EventModifier extends Union {
@@ -450,7 +463,8 @@ export function InputEvent__get_event(x) {
 }
 
 export function InputEvent__get_inputElement(x) {
-    return asElement(x.target);
+    const _event = (x_1) => x_1;
+    return asElement(_event(x).target);
 }
 
 export function onInput(fn, options) {
@@ -505,9 +519,11 @@ export function subscribeOnMount(f) {
  */
 export function fragment(elements) {
     return SutilElement_Define_7B1F8004("fragment", (ctx) => {
-        const fragmentNode = new SutilEffect(2, [SutilEffect_MakeGroup_5BDBED5B("fragment", ctx.Parent, ctx.Previous)]);
+        const group = SutilEffect_MakeGroup_5BDBED5B("fragment", ctx.Parent, ctx.Previous);
+        const fragmentNode = new SutilEffect(2, [group]);
         BuildContext__AddChild_2AD740C9(ctx, fragmentNode);
-        buildChildren(elements, new BuildContext(ctx.Document, fragmentNode, ctx.Previous, new DomAction(0, []), ctx.MakeName, ctx.Class, ctx.Debug, ctx.Pipeline));
+        const childCtx = new BuildContext(ctx.Document, fragmentNode, ctx.Previous, new DomAction(0, []), ctx.MakeName, ctx.Class, ctx.Debug, ctx.Pipeline);
+        buildChildren(elements, childCtx);
         return fragmentNode;
     });
 }

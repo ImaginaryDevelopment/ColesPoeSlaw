@@ -1,9 +1,9 @@
 import { Record } from "../fable-library-js.4.21.0/Types.js";
 import { class_type, record_type, lambda_type, unit_type } from "../fable-library-js.4.21.0/Reflection.js";
-import { makeWebComponent } from "./webcomponentinterop.js";
 import { mountOnShadowRoot } from "./Core.fs.js";
 import { Store_make, Store_set, Store_current } from "./Store.fs.js";
 import { Event_Connected, CustomDispatch$1_dispatch_4FBB8B24 } from "./DomHelpers.fs.js";
+import { makeWebComponent } from "./webcomponentinterop.js";
 import { disposeSafe } from "../fable-library-js.4.21.0/Util.js";
 
 class WebComponentModule_Callbacks$1 extends Record {
@@ -30,18 +30,21 @@ export function WebComponent_$reflection() {
 }
 
 export function WebComponent_Register_419BD1A7(name, view, initValue, initModel, dispose) {
-    makeWebComponent(name, (host) => {
+    const wrapper = (host) => {
         const model = initModel();
-        const disposeElement = mountOnShadowRoot(view(model, host), host);
-        return new WebComponentModule_Callbacks$1(() => {
+        const sutilElement = view(model, host);
+        const disposeElement = mountOnShadowRoot(sutilElement, host);
+        const disposeWrapper = () => {
             dispose(model);
             disposeElement();
-        }, () => Store_current(model), (newValue) => {
+        };
+        return new WebComponentModule_Callbacks$1(disposeWrapper, () => Store_current(model), (newValue) => {
             Store_set(model, newValue);
         }, () => {
             CustomDispatch$1_dispatch_4FBB8B24(host.shadowRoot.firstChild, Event_Connected);
         });
-    }, initValue);
+    };
+    makeWebComponent(name, wrapper, initValue);
 }
 
 export function WebComponent_Register_2051C3C7(name, view, init) {

@@ -32,15 +32,18 @@ export function $007CRMatches$007C_$007C(p, x) {
 }
 
 export const dmgPattern = (() => {
-    const numRepeat = toText(printf("(%s%s)+"))("(\\d+-\\d+)")("\\s*(?:\\(augmented\\)\\s*,?)?\\s*");
-    return toText(printf("%s%s"))("(\\w+) Damage:\\s*")(numRepeat);
+    const start = "(\\w+) Damage:\\s*";
+    const numbers = "(\\d+-\\d+)";
+    const augOpt = "\\s*(?:\\(augmented\\)\\s*,?)?\\s*";
+    const numRepeat = toText(printf("(%s%s)+"))(numbers)(augOpt);
+    return toText(printf("%s%s"))(start)(numRepeat);
 })();
 
 export function $007CAttackSpeed$007C_$007C(_arg) {
-    const activePatternResult = $007CRMatch$007C_$007C("Attacks per Second\\s*:\\s*(\\d+\\.\\d+)", _arg);
+    const activePatternResult = $007CRMatch$007C_$007C("Attacks per Second\\s*:\\s*(?<speed>\\d+\\.\\d+)", _arg);
     if (activePatternResult != null) {
         const rAps = activePatternResult;
-        return parse(rAps[1] || "");
+        return parse((rAps.groups && rAps.groups.speed) || "");
     }
     else {
         return undefined;
@@ -48,10 +51,12 @@ export function $007CAttackSpeed$007C_$007C(_arg) {
 }
 
 export function $007CApsSpecial$007C_$007C(_arg) {
-    const activePatternResult = $007CRMatch$007C_$007C("(\\d+)% increased Attack Speed while a Rare or Unique Enemy is Nearby", _arg);
+    const activePatternResult = $007CRMatch$007C_$007C("(?<aps>\\d+)% increased Attack Speed while a Rare or Unique Enemy is Nearby", _arg);
     if (activePatternResult != null) {
         const rAps = activePatternResult;
-        return parse(rAps[1] || "");
+        return (() => {
+            throw 1;
+        })();
     }
     else {
         return undefined;
@@ -59,10 +64,12 @@ export function $007CApsSpecial$007C_$007C(_arg) {
 }
 
 export function $007CCritChance$007C_$007C(_arg) {
-    const activePatternResult = $007CRMatch$007C_$007C("Critical Hit Chance: (\\d+\\.\\d+)%", _arg);
+    const activePatternResult = $007CRMatch$007C_$007C("Critical Hit Chance: (?<crit>\\d+\\.\\d+)%", _arg);
     if (activePatternResult != null) {
         const rCrit = activePatternResult;
-        return parse(rCrit[1] || "");
+        return (() => {
+            throw 1;
+        })();
     }
     else {
         return undefined;
@@ -70,10 +77,12 @@ export function $007CCritChance$007C_$007C(_arg) {
 }
 
 export function $007CCritBonus$007C_$007C(_arg) {
-    const activePatternResult = $007CRMatch$007C_$007C("\\+(\\d+)% to Critical Damage Bonus", _arg);
+    const activePatternResult = $007CRMatch$007C_$007C("\\+(?<crit>\\d+)% to Critical Damage Bonus", _arg);
     if (activePatternResult != null) {
         const rCb = activePatternResult;
-        return parse(rCb[1] || "");
+        return (() => {
+            throw 1;
+        })();
     }
     else {
         return undefined;
@@ -91,16 +100,27 @@ export function getDamageEntries(_arg) {
     }
 }
 
-export const $007CDamageEntries$007C_$007C = (arg_1) => map_1((list_3) => map_2((tupledArg) => [tupledArg[0], sum(map_2((arg) => flip((x_1, y_1) => (x_1 / y_1), 2, sum(arg, {
-    GetZero: () => 0,
-    Add: (x, y) => (x + y),
-})), tupledArg[1]), {
-    GetZero: () => 0,
-    Add: (x_3, y_3) => (x_3 + y_3),
-})], list_3), getDamageEntries(arg_1));
+export const $007CDamageEntries$007C_$007C = (() => {
+    const result = (arg_1) => map_1((list_3) => map_2((tupledArg) => {
+        const t = tupledArg[0];
+        const values = tupledArg[1];
+        return [t, sum(map_2((arg) => flip((x_1, y_1) => (x_1 / y_1), 2, sum(arg, {
+            GetZero: () => 0,
+            Add: (x, y) => (x + y),
+        })), values), {
+            GetZero: () => 0,
+            Add: (x_3, y_3) => (x_3 + y_3),
+        })];
+    }, list_3), getDamageEntries(arg_1));
+    return result;
+})();
 
 export function calc$0027(aps, dmgs) {
-    const indiv = ofSeq(map((tupledArg) => [tupledArg[0], tupledArg[1] * aps], dmgs));
+    const indiv = ofSeq(map((tupledArg) => {
+        const t = tupledArg[0];
+        const v = tupledArg[1];
+        return [t, v * aps];
+    }, dmgs));
     return [sum_1(map_2((tuple) => tuple[1], indiv), {
         GetZero: () => 0,
         Add: (x, y) => (x + y),
@@ -112,8 +132,15 @@ export function calcCrit(aps, crit, critBonus, dmgs) {
         throw new Error(toText(interpolate("Invalid crit chance \'%f%P()\'", [crit])));
     }
     const indiv = ofSeq(map((tupledArg) => {
-        const dmg = tupledArg[1] * aps;
-        return [tupledArg[0], (((100 - crit) * dmg) + ((crit * dmg) * (1 + (defaultArg(map_1((y) => (100 + y), critBonus), 100) / 100)))) / 100];
+        const t = tupledArg[0];
+        const v = tupledArg[1];
+        const dmg = v * aps;
+        const dmgChance = 100 - crit;
+        let critDmg;
+        const defaultCritBonus = 100;
+        critDmg = defaultArg(map_1((y) => (defaultCritBonus + y), critBonus), defaultCritBonus);
+        const effDmg = ((dmgChance * dmg) + ((crit * dmg) * (1 + (critDmg / 100)))) / 100;
+        return [t, effDmg];
     }, dmgs));
     return [sum_1(map_2((tuple) => tuple[1], indiv), {
         GetZero: () => 0,
@@ -136,18 +163,30 @@ export function WeaponDps_$reflection() {
 export function calcDps(aps, aps2Opt, dmgs, critOpt) {
     const patternInput = calc$0027(aps, dmgs);
     const total = patternInput[0];
+    const individualDamages = patternInput[1];
     if (critOpt != null) {
-        const patternInput_2 = calcCrit(aps, critOpt[0], critOpt[1], dmgs);
-        return append(patternInput_2[1], singleton(["TotalCrit", patternInput_2[0]]));
+        const critBonus = critOpt[1];
+        const crit = critOpt[0];
+        const patternInput_2 = calcCrit(aps, crit, critBonus, dmgs);
+        const totalCrit = patternInput_2[0];
+        const indiCrit = patternInput_2[1];
+        return append(indiCrit, singleton(["TotalCrit", totalCrit]));
     }
     else {
         toConsole(printf("dps calculated total %.2f"))(total);
-        return toList(delay(() => append_1(append(patternInput[1], singleton(["Total", total])), delay(() => {
+        return toList(delay(() => append_1(append(individualDamages, singleton(["Total", total])), delay(() => {
             const matchValue = aps2Opt;
             if (matchValue != null) {
-                const patternInput_1 = calc$0027(aps * (1 + (matchValue / 100)), dmgs);
+                const aps$0027 = matchValue;
+                const rAps = aps * (1 + (aps$0027 / 100));
+                const patternInput_1 = calc$0027(rAps, dmgs);
                 const t2 = patternInput_1[0];
-                const i2_1 = map_2((tupledArg) => [toText(printf("%s2"))(tupledArg[0]), tupledArg[1]], patternInput_1[1]);
+                const i2 = patternInput_1[1];
+                const i2_1 = map_2((tupledArg) => {
+                    const n = tupledArg[0];
+                    const x = tupledArg[1];
+                    return [toText(printf("%s2"))(n), x];
+                }, i2);
                 toConsole(printf("dps with Rare or Unique Nearby %.2f"))(t2);
                 return append(i2_1, singleton(["Total2", t2]));
             }
@@ -167,7 +206,10 @@ iterate((tupledArg) => {
     if (activePatternResult != null) {
         const dmgs = activePatternResult;
         if (text.startsWith("Elemental Damage")) {
-            const _arg_1 = tryFind((tupledArg_1) => (tupledArg_1[0] === "Elemental"), dmgs);
+            const _arg_1 = tryFind((tupledArg_1) => {
+                const t = tupledArg_1[0];
+                return t === "Elemental";
+            }, dmgs);
             if (_arg_1 != null) {
                 const v = _arg_1[1];
                 if (v !== expected) {
@@ -180,6 +222,7 @@ iterate((tupledArg) => {
         }
     }
     else {
+        const x = text;
         throw new Error(`Damage entry unrecognized: '${text}'`);
     }
 }, dpsLineTestCases);
@@ -207,8 +250,8 @@ export function runItem(text) {
             const aps2Opt = (activePatternResult_2 = $007CApsSpecial$007C_$007C(text), (activePatternResult_2 != null) ? ((aps$0027 = activePatternResult_2, aps$0027)) : undefined);
             const dps = calcDps(aps, aps2Opt, dmgs, undefined);
             return toList(delay(() => append_1(singleton_1(toText(printf("Aps:%A, dps: %A"))(aps)(dps)), delay(() => {
-                let activePatternResult_3, crit, critDps, activePatternResult_4, cb;
-                return append_1((activePatternResult_3 = $007CCritChance$007C_$007C(text), (activePatternResult_3 != null) ? ((crit = activePatternResult_3, (critDps = calcDps(aps, aps2Opt, dmgs, [crit, (activePatternResult_4 = $007CCritBonus$007C_$007C(text), (activePatternResult_4 != null) ? ((cb = activePatternResult_4, cb)) : undefined)]), singleton_1(toText(printf("crit dps: %A"))(critDps))))) : (empty())), delay(() => {
+                let activePatternResult_3, crit, cb_1, activePatternResult_4, cb, critDps;
+                return append_1((activePatternResult_3 = $007CCritChance$007C_$007C(text), (activePatternResult_3 != null) ? ((crit = activePatternResult_3, (cb_1 = ((activePatternResult_4 = $007CCritBonus$007C_$007C(text), (activePatternResult_4 != null) ? ((cb = activePatternResult_4, cb)) : undefined)), (critDps = calcDps(aps, aps2Opt, dmgs, [crit, cb_1]), singleton_1(toText(printf("crit dps: %A"))(critDps)))))) : (empty())), delay(() => {
                     return empty();
                 }));
             }))));

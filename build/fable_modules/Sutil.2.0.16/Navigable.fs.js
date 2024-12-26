@@ -19,47 +19,50 @@ export function Navigable_$reflection() {
  * Call <c>dispatch</c> each time the window's location changes. The location is parsed into a <c>'T</c> with the given <c>parser</c>/
  */
 export function Navigable_listenLocation_Z64CC954B(onChangeLocation) {
-    let clo, clo_1;
     let onChangeRef = (_arg) => {
         throw new Error("`onChangeRef` has not been initialized.\nPlease make sure you used Elmish.Navigation.Program.Internal.subscribe");
     };
-    let lastLocation = undefined;
-    const onChange = (_arg_1) => {
-        let value;
-        let matchResult, href_1;
-        if (lastLocation != null) {
-            if (lastLocation === Window_get_location().href) {
-                matchResult = 0;
-                href_1 = lastLocation;
+    const subscribe = () => {
+        let clo, clo_1;
+        let lastLocation = undefined;
+        const onChange = (_arg_1) => {
+            let href;
+            let value;
+            let matchResult, href_1;
+            if (lastLocation != null) {
+                if ((href = lastLocation, href === Window_get_location().href)) {
+                    matchResult = 0;
+                    href_1 = lastLocation;
+                }
+                else {
+                    matchResult = 1;
+                }
             }
             else {
                 matchResult = 1;
             }
-        }
-        else {
-            matchResult = 1;
-        }
-        switch (matchResult) {
-            case 0: {
-                value = undefined;
-                break;
+            switch (matchResult) {
+                case 0: {
+                    value = undefined;
+                    break;
+                }
+                default: {
+                    lastLocation = Window_get_location().href;
+                    value = onChangeLocation(Window_get_location());
+                }
             }
-            default: {
-                lastLocation = Window_get_location().href;
-                value = onChangeLocation(Window_get_location());
-            }
-        }
-        return undefined;
+            return undefined;
+        };
+        onChangeRef = onChange;
+        Window_addEventListener_378D00DF("popstate", (clo = onChangeRef, (arg) => {
+            clo(arg);
+        }));
+        Window_addEventListener_378D00DF("hashchange", (clo_1 = onChangeRef, (arg_1) => {
+            clo_1(arg_1);
+        }));
+        onChange();
     };
-    onChangeRef = onChange;
-    Window_addEventListener_378D00DF("popstate", (clo = onChangeRef, (arg) => {
-        clo(arg);
-    }));
-    Window_addEventListener_378D00DF("hashchange", (clo_1 = onChangeRef, (arg_1) => {
-        clo_1(arg_1);
-    }));
-    onChange();
-    return () => {
+    const unsubscribe = () => {
         let clo_2, clo_3;
         Window_removeEventListener_378D00DF("popstate", (clo_2 = onChangeRef, (arg_2) => {
             clo_2(arg_2);
@@ -68,6 +71,8 @@ export function Navigable_listenLocation_Z64CC954B(onChangeLocation) {
             clo_3(arg_3);
         }));
     };
+    subscribe();
+    return unsubscribe;
 }
 
 /**

@@ -90,10 +90,12 @@ export function mapResult(fn, a) {
 export function bindResult(fn, a) {
     return a.then((a_1) => {
         if (a_1.tag === 1) {
-            return Promise.resolve(new FSharpResult$2(1, [a_1.fields[0]]));
+            const e = a_1.fields[0];
+            return Promise.resolve(new FSharpResult$2(1, [e]));
         }
         else {
-            const pr = fn(a_1.fields[0]);
+            const a_2 = a_1.fields[0];
+            const pr = fn(a_2);
             return pr.then((ResultValue) => (new FSharpResult$2(0, [ResultValue])));
         }
     });

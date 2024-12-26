@@ -6,8 +6,10 @@ import { class_type } from "../fable-library-js.4.21.0/Reflection.js";
 import { unmount } from "./DomHelpers.fs.js";
 
 export function ProgramModule__mount(mp_, mp__1, view) {
-    const mp_1 = [mp_, mp__1];
-    Registry_initialise(ElementRef__get_AsElement(mp_1[1]).ownerDocument);
+    const mp = [mp_, mp__1];
+    const mp_1 = mp;
+    const eref = mp_1[1];
+    Registry_initialise(ElementRef__get_AsElement(eref).ownerDocument);
     return mount(view, mp_1[0], mp_1[1]);
 }
 
@@ -16,7 +18,8 @@ export function ProgramModule_mountElementOnDocumentElement(host, app) {
 }
 
 export function ProgramModule_mountElementOnDocument(doc, id, app) {
-    return ProgramModule__mount(new MountOp(0, []), new ElementRef(2, [doc.querySelector(`#${id}`)]), app);
+    const host = doc.querySelector(`#${id}`);
+    return ProgramModule__mount(new MountOp(0, []), new ElementRef(2, [host]), app);
 }
 
 export function ProgramModule_mountDomElement(host, app) {
@@ -70,7 +73,8 @@ export function Program_mount_6E602840(app) {
  * Mount application on element with given id from specific document. Existing children at that node will be removed. Return value can be disposed to unmount and clean up.
  */
 export function Program_mount_37443D56(doc, id, app) {
-    return Program_mount_Z427DD8DF(doc.querySelector(`#${id}`), app);
+    const host = doc.querySelector(`#${id}`);
+    return Program_mount_Z427DD8DF(host, app);
 }
 
 /**

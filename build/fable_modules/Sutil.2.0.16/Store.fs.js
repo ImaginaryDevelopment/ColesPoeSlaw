@@ -1,11 +1,11 @@
 import { makeElmish, makeElmishSimple, makeStore } from "./ObservableStore.fs.js";
 import { map as map_1, subscribe } from "../fable-library-js.4.21.0/Observable.js";
-import { zip, distinctUntilChanged, filter } from "./Observable.fs.js";
+import { zip, distinctUntilChanged, filter, map2 } from "./Observable.fs.js";
 import { disposeSafe, defaultOf } from "../fable-library-js.4.21.0/Util.js";
 import { some } from "../fable-library-js.4.21.0/Option.js";
-import { iterateIndexed } from "../fable-library-js.4.21.0/List.js";
 import { addToSet } from "../fable-library-js.4.21.0/MapUtil.js";
 import { fold } from "../fable-library-js.4.21.0/Seq.js";
+import { iterateIndexed } from "../fable-library-js.4.21.0/List.js";
 
 export function StoreHelpers_disposable(f) {
     return {
@@ -19,8 +19,10 @@ export function StoreHelpers_disposable(f) {
  * Create a new store
  */
 export function Store_make(modelInit) {
-    return makeStore(() => modelInit, (value) => {
+    const init = () => modelInit;
+    const s = makeStore(init, (value) => {
     });
+    return s;
 }
 
 /**
@@ -50,6 +52,13 @@ export function Store_subscribe(callback, store) {
  */
 export function Store_map(callback, store) {
     return map_1(callback, store);
+}
+
+/**
+ * Returns an observable that will resolve to the result of said callback applied to two observables
+ */
+export function Store_map2(callback, storeA, storeB) {
+    return map2(callback, storeA, storeB);
 }
 
 /**
@@ -235,27 +244,32 @@ export function StoreExtensions_firstOf(selectors) {
     const matches = new Set([]);
     let current = -1;
     const s = Store_make(current);
-    iterateIndexed((i_2, pred) => {
-        const u = subscribe((state_2) => {
-            const i = i_2 | 0;
-            if (state_2) {
-                addToSet(i, matches);
+    const setMatch = (i, state) => {
+        if (state) {
+            addToSet(i, matches);
+        }
+        else {
+            matches.delete(i);
+        }
+    };
+    const scan = () => {
+        const next = fold((a, i_1) => {
+            if ((a < 0) ? true : (i_1 < a)) {
+                return i_1 | 0;
             }
             else {
-                matches.delete(i);
+                return a | 0;
             }
-            const next = fold((a, i_1) => {
-                if ((a < 0) ? true : (i_1 < a)) {
-                    return i_1 | 0;
-                }
-                else {
-                    return a | 0;
-                }
-            }, -1, matches) | 0;
-            if (next !== current) {
-                StoreOperators_op_LessTwiddle(s, next);
-                current = (next | 0);
-            }
+        }, -1, matches) | 0;
+        if (next !== current) {
+            StoreOperators_op_LessTwiddle(s, next);
+            current = (next | 0);
+        }
+    };
+    iterateIndexed((i_2, pred) => {
+        const u = subscribe((state_2) => {
+            setMatch(i_2, state_2);
+            scan();
         }, pred);
     }, selectors);
     return s;

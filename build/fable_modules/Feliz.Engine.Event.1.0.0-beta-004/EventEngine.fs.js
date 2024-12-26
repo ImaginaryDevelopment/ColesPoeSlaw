@@ -101,36 +101,39 @@ export function EventEngine$1__onChange_7DDE0344(_, handler) {
  * directly when it is defined as a checkbox with attribute `inputType.checkbox`.
  */
 export function EventEngine$1__onChange_50F94480(_, handler) {
-    return _.mk("change", (ev) => {
+    const handler_1 = (ev) => {
         const el = ev.target;
         handler(el.checked);
-    });
+    };
+    return _.mk("change", handler_1);
 }
 
 /**
  * Same as `onChange` that takes an event as input but instead lets you deal with the selected file directly from the `input` element when it is defined as a checkbox with `prop.type'.file`.
  */
 export function EventEngine$1__onChange_ZB305852(_, handler) {
-    return _.mk("change", (ev) => {
+    const fileHandler = (ev) => {
         const el = ev.target;
         const files = el.files;
         if (!(files == null) && (files.length > 0)) {
             handler(files.item(0));
         }
-    });
+    };
+    return _.mk("change", fileHandler);
 }
 
 /**
  * Same as `onChange` that takes an event as input but instead lets you deal with the selected files directly from the `input` element when it is defined as a checkbox with `prop.type'.file` and `prop.multiple true`.
  */
 export function EventEngine$1__onChange_Z2936DFD4(_, handler) {
-    return _.mk("change", (ev) => {
+    const fileHandler = (ev) => {
         const el = ev.target;
         const fileList = el.files;
         if (!(fileList == null)) {
             handler(toList(delay(() => map((i) => fileList.item(i), rangeDouble(0, 1, fileList.length - 1)))));
         }
-    });
+    };
+    return _.mk("change", fileHandler);
 }
 
 /**
@@ -138,20 +141,22 @@ export function EventEngine$1__onChange_Z2936DFD4(_, handler) {
  * instead of extracting it from the event arguments.
  */
 export function EventEngine$1__onChange_41EFD311(_, handler) {
-    return _.mk("change", (ev) => {
+    const handler_1 = (ev) => {
         const el = ev.target;
         handler(el.value);
-    });
+    };
+    return _.mk("change", handler_1);
 }
 
 /**
  * Same as `onChange` but let's you deal with the `checked` value that has changed from the `input` element directly instead of extracting it from the event arguments.
  */
 export function EventEngine$1__onCheckedChange_50F94480(_, handler) {
-    return _.mk("change", (ev) => {
+    const handler_1 = (ev) => {
         const el = ev.target;
         handler(el.checked);
-    });
+    };
+    return _.mk("change", handler_1);
 }
 
 /**
@@ -704,10 +709,11 @@ export function EventEngine$1__onSubmit_7DDE0344(_, handler) {
  * instead of extracting it from the event arguments.
  */
 export function EventEngine$1__onTextChange_41EFD311(_, handler) {
-    return _.mk("change", (ev) => {
+    const handler_1 = (ev) => {
         const el = ev.target;
         handler(el.value);
-    });
+    };
+    return _.mk("change", handler_1);
 }
 
 /**
@@ -715,10 +721,11 @@ export function EventEngine$1__onTextChange_41EFD311(_, handler) {
  * instead of extracting it from the event arguments.
  */
 export function EventEngine$1__onTextInput_41EFD311(_, handler) {
-    return _.mk("input", (ev) => {
+    const handler_1 = (ev) => {
         const el = ev.target;
         handler(el.value);
-    });
+    };
+    return _.mk("input", handler_1);
 }
 
 /**

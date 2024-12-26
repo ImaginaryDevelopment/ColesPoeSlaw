@@ -3,7 +3,7 @@ import { int32ToString } from "../fable-library-js.4.21.0/Util.js";
 import { replace, join } from "../fable-library-js.4.21.0/String.js";
 import { map, choose } from "../fable-library-js.4.21.0/Seq.js";
 import { toString } from "../fable-library-js.4.21.0/Date.js";
-import { ofArray, fold } from "../fable-library-js.4.21.0/List.js";
+import { fold, ofArray } from "../fable-library-js.4.21.0/List.js";
 
 export class AttrEngine$1 {
     constructor(mk, mkBool) {
@@ -610,14 +610,16 @@ export function AttrEngine$1__classes_5D66A394(_, names) {
 }
 
 export function AttrEngine$1__classes_Z5EF0466F(_, names) {
-    return _.mk("class", join(" ", choose((_arg) => {
+    const class$0027 = join(" ", choose((_arg) => {
         if (_arg[0]) {
-            return _arg[1];
+            const c = _arg[1];
+            return c;
         }
         else {
             return undefined;
         }
-    }, names)));
+    }, names));
+    return _.mk("class", class$0027);
 }
 
 /**
@@ -2387,7 +2389,9 @@ export function AttrEngine$1__transform_124E45BF(_, transform) {
  * Defines a list of transform definitions that are applied to an element and the element's children.
  */
 export function AttrEngine$1__transform_45017D10(_, transforms) {
-    return _.mk("transform", join(" ", map((s) => fold((ins, toReplace) => replace(ins, toReplace, ""), s, ofArray(["px", "deg"])), map((x) => x, transforms))));
+    const unitList = ofArray(["px", "deg"]);
+    const removeUnits = (s) => fold((ins, toReplace) => replace(ins, toReplace, ""), s, unitList);
+    return _.mk("transform", join(" ", map(removeUnits, map((x) => x, transforms))));
 }
 
 /**

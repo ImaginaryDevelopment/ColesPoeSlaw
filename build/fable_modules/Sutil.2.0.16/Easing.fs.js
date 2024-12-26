@@ -16,12 +16,14 @@ export function backInOut(t) {
 }
 
 export function backIn(t) {
-    return (t * t) * (((1.70158 + 1) * t) - 1.70158);
+    const s = 1.70158;
+    return (t * t) * (((s + 1) * t) - s);
 }
 
 export function backOut(t) {
+    const s = 1.70158;
     const t$0027 = t - 1;
-    return ((t$0027 * t$0027) * (((1.70158 + 1) * t$0027) + 1.70158)) + 1;
+    return ((t$0027 * t$0027) * (((s + 1) * t$0027) + s)) + 1;
 }
 
 export function cubicIn(t) {
