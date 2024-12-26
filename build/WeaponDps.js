@@ -2,7 +2,7 @@ import { captures, matches, create, match } from "./fable_modules/fable-library-
 import { toFail, toConsole, interpolate, printf, toText } from "./fable_modules/fable-library-js.4.21.0/String.js";
 import { parse } from "./fable_modules/fable-library-js.4.21.0/Double.js";
 import { singleton, append, sum, map as map_2, ofSeq } from "./fable_modules/fable-library-js.4.21.0/List.js";
-import { tryFind, iterate, empty, append as append_1, delay, toList, sum as sum_1, map } from "./fable_modules/fable-library-js.4.21.0/Seq.js";
+import { singleton as singleton_1, tryFind, iterate, empty, append as append_1, delay, toList, sum as sum_1, map } from "./fable_modules/fable-library-js.4.21.0/Seq.js";
 import { defaultArg, map as map_1 } from "./fable_modules/fable-library-js.4.21.0/Option.js";
 import { Record } from "./fable_modules/fable-library-js.4.21.0/Types.js";
 import { record_type, list_type, tuple_type, string_type, float64_type } from "./fable_modules/fable-library-js.4.21.0/Reflection.js";
@@ -185,7 +185,7 @@ iterate((tupledArg) => {
 }, dpsLineTestCases);
 
 export function runItem(text) {
-    let activePatternResult_2, aps$0027, activePatternResult_4, cb;
+    let activePatternResult_2, aps$0027;
     let matchResult, aps, dmgs;
     const activePatternResult = $007CAttackSpeed$007C_$007C(text);
     if (activePatternResult != null) {
@@ -206,31 +206,23 @@ export function runItem(text) {
         case 0: {
             const aps2Opt = (activePatternResult_2 = $007CApsSpecial$007C_$007C(text), (activePatternResult_2 != null) ? ((aps$0027 = activePatternResult_2, aps$0027)) : undefined);
             const dps = calcDps(aps, aps2Opt, dmgs, undefined);
-            toConsole(printf("Aps:%A, dps: %A"))(aps)(dps);
-            const activePatternResult_3 = $007CCritChance$007C_$007C(text);
-            if (activePatternResult_3 != null) {
-                const crit = activePatternResult_3;
-                const critDps = calcDps(aps, aps2Opt, dmgs, [crit, (activePatternResult_4 = $007CCritBonus$007C_$007C(text), (activePatternResult_4 != null) ? ((cb = activePatternResult_4, cb)) : undefined)]);
-                toConsole(printf("crit dps: %A"))(critDps);
-            }
-            break;
+            return toList(delay(() => append_1(singleton_1(toText(printf("Aps:%A, dps: %A"))(aps)(dps)), delay(() => {
+                let activePatternResult_3, crit, critDps, activePatternResult_4, cb;
+                return append_1((activePatternResult_3 = $007CCritChance$007C_$007C(text), (activePatternResult_3 != null) ? ((crit = activePatternResult_3, (critDps = calcDps(aps, aps2Opt, dmgs, [crit, (activePatternResult_4 = $007CCritBonus$007C_$007C(text), (activePatternResult_4 != null) ? ((cb = activePatternResult_4, cb)) : undefined)]), singleton_1(toText(printf("crit dps: %A"))(critDps))))) : (empty())), delay(() => {
+                    return empty();
+                }));
+            }))));
         }
-        case 1: {
+        default:
             if ($007CAttackSpeed$007C_$007C(text) != null) {
-                toConsole(printf("Couldn\'t find damage"));
+                return singleton("Couldn\'t find damage");
             }
             else if ($007CDamageEntries$007C_$007C(text) != null) {
-                toConsole(printf("Could find AttackSpeed"));
+                return singleton("Could find AttackSpeed");
             }
             else {
-                toConsole(printf("Couldn\'t find either"));
+                return singleton("Couldn\'t find either");
             }
-            break;
-        }
     }
-    toConsole(printf(""));
-    toConsole(printf(""));
-    toConsole(printf("Poe1: For level 50ish we found a ~245 dagger without difficulty"));
-    toConsole(printf("Poe1: For endgamish ~ 320 1h"));
 }
 

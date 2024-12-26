@@ -32,11 +32,11 @@ let dmgPattern =
     sprintf "%s%s" start numRepeat
 let (|AttackSpeed|_|) =
     function
-    |RMatch "Attacks per Second\s*:\s*(\d+\.\d+)" rAps -> rAps.Groups.[1].Value |> float |> Some
+    |RMatch "Attacks per Second\s*:\s*(\d+\.\d+)" rAps -> rAps.Groups[1].Value |> float |> Some
     |_ -> None
 let (|ApsSpecial|_|) =
     function
-    |RMatch "(\d+)% increased Attack Speed while a Rare or Unique Enemy is Nearby" rAps -> rAps.Groups.[1].Value |> float |> Some
+    |RMatch "(\d+)% increased Attack Speed while a Rare or Unique Enemy is Nearby" rAps -> rAps.Groups[1].Value |> float |> Some
     |_ -> None
 let (|CritChance|_|) =
     function
@@ -154,27 +154,27 @@ let runItem text =
     | AttackSpeed aps & DamageEntries dmgs ->
         let aps2Opt = match text with ApsSpecial aps' -> Some aps' | _ -> None
         let dps: (string * float) list = calcDps aps aps2Opt dmgs None
-        printfn "Aps:%A, dps: %A" aps dps
+        [
 
-        match text with
-        | CritChance crit ->
-            let cb =
-                match text with
-                | CritBonus cb -> Some cb
-                | _ -> None
-            let critDps = calcDps aps aps2Opt dmgs (Some (crit,cb))
-            printfn "crit dps: %A" critDps
-        | _ -> ()
-        ()
-    | AttackSpeed _ -> printfn "Couldn't find damage"
+            sprintf "Aps:%A, dps: %A" aps dps
+
+            match text with
+            | CritChance crit ->
+                let cb =
+                    match text with
+                    | CritBonus cb -> Some cb
+                    | _ -> None
+                let critDps = calcDps aps aps2Opt dmgs (Some (crit,cb))
+                sprintf "crit dps: %A" critDps
+            | _ -> ()
+            ()
+        ]
+    | AttackSpeed _ -> List.singleton "Couldn't find damage"
     | DamageEntries _ ->
-        printfn "Could find AttackSpeed"
-    | _ -> printfn "Couldn't find either"
-
-    printfn ""
-    printfn ""
+        List.singleton "Could find AttackSpeed"
+    | _ -> List.singleton "Couldn't find either"
 
 // notes about previous league estimations
-    printfn "Poe1: For level 50ish we found a ~245 dagger without difficulty"
-    printfn "Poe1: For endgamish ~ 320 1h"
+    // printfn "Poe1: For level 50ish we found a ~245 dagger without difficulty"
+    // printfn "Poe1: For endgamish ~ 320 1h"
     // x.Dump("Weapon")
