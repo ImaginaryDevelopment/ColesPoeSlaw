@@ -4,6 +4,8 @@
     <DefineConstants>$(DefineConstants);FABLE_COMPILER;</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="WeaponDps.fs" />
+    <Compile Include="ItemDisplay.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <ItemGroup>
